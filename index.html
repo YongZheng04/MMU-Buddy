@@ -9,18 +9,25 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8f9fa;
+      background: url('mmu-background.jpeg') no-repeat center center fixed;
+      background-size: cover;
       margin: 0;
       padding: 20px 0;
+      min-height: 100vh;
+      color: #333;
     }
     .header {
       text-align: center;
       margin-bottom: 30px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .logo {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #d32f2f;
+    .logo img {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 10px;
     }
     .welcome {
       font-size: 1.8rem;
@@ -35,6 +42,9 @@
       font-size: 1.4rem;
       color: #d32f2f;
       font-weight: bold;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 12px;
+      border-radius: 8px;
     }
     .announcements::after {
       content: '';
@@ -45,7 +55,7 @@
       margin: 10px auto;
     }
     .tile {
-      background-color: #e0e0e0;
+      background-color: rgba(255, 255, 255, 0.92);
       border-radius: 12px;
       padding: 20px;
       text-align: center;
@@ -55,23 +65,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
     }
     .tile:hover {
-      transform: translateY(-5px);
-      background-color: #d0d0d0;
+      transform: translateY(-6px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
     }
     .container {
-      max-width: 1000px;
+      max-width: 1100px;
     }
     .page-content {
       display: none;
-      padding: 20px;
-      background: white;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.94);
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      margin: 20px auto;
     }
     .back-btn {
       margin-bottom: 20px;
@@ -82,9 +93,11 @@
 
 <div class="container" id="dashboard">
 
-  <!-- Header -->
+  <!-- Header with real logo -->
   <div class="header">
-    <div class="logo">((( o ))) MMU</div>
+    <div class="logo">
+      <img src="mmu-logo.jpg" alt="MMU Logo">
+    </div>
     <div class="welcome">Welcome to MMU Buddy</div>
   </div>
 
@@ -120,9 +133,8 @@
 
 </div>
 
-<!-- ====================== Feature Pages ====================== -->
+<!-- ====================== Feature Pages (same as before) ====================== -->
 
-<!-- Academic Programmes -->
 <div id="academic" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Academic Programmes</h2>
@@ -133,10 +145,8 @@
     <li><strong>Faculty of Business</strong> - Bachelor of Business Administration (Hons), Bachelor of Accounting (Hons)</li>
     <li><strong>Faculty of Law</strong> - Bachelor of Laws (Hons)</li>
   </ul>
-  <p>Click on a programme to see more details (coming soon).</p>
 </div>
 
-<!-- Campus Maps -->
 <div id="maps" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Campus Maps</h2>
@@ -149,18 +159,13 @@
   </div>
 </div>
 
-<!-- Food & Cafe Menu -->
 <div id="food" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Food & Cafe Menu</h2>
   <p>Today's menu (example):</p>
   <table class="table table-bordered">
     <thead>
-      <tr>
-        <th>Cafe</th>
-        <th>Item</th>
-        <th>Price (RM)</th>
-      </tr>
+      <tr><th>Cafe</th><th>Item</th><th>Price (RM)</th></tr>
     </thead>
     <tbody>
       <tr><td>Old Town Cafe</td><td>Nasi Lemak Ayam</td><td>7.50</td></tr>
@@ -168,10 +173,8 @@
       <tr><td>Mamak Stall</td><td>Roti Canai + Teh Tarik</td><td>5.00</td></tr>
     </tbody>
   </table>
-  <p>Average rating: ★★★★☆ (4.2/5)</p>
 </div>
 
-<!-- Emergency Hotlines -->
 <div id="hotlines" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Emergency Hotlines</h2>
@@ -182,10 +185,8 @@
     <li class="list-group-item"><strong>Hostel Warden</strong>: 012-345 6789</li>
     <li class="list-group-item"><strong>IT Helpdesk</strong>: 06-252 3000</li>
   </ul>
-  <p class="mt-3">For emergencies, call 999 or 112 directly.</p>
 </div>
 
-<!-- Transport Schedules -->
 <div id="transport" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Transport Schedules</h2>
@@ -202,7 +203,6 @@
   </table>
 </div>
 
-<!-- Lost & Found -->
 <div id="lostfound" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Lost & Found</h2>
@@ -212,10 +212,8 @@
     <li class="list-group-item">Student ID card lost near Library – Contact: student@mmu.edu.my</li>
   </ul>
   <button class="btn btn-success">Report Lost / Found Item</button>
-  <p class="mt-3">(Form coming soon)</p>
 </div>
 
-<!-- Feedback -->
 <div id="feedback" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Feedback</h2>
@@ -227,7 +225,6 @@
     </div>
     <button type="submit" class="btn btn-primary">Submit Anonymously</button>
   </form>
-  <p class="mt-3">Thank you for helping improve MMU!</p>
 </div>
 
 <script>
