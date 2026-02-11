@@ -57,25 +57,22 @@
     .tile {
       background-color: rgba(255, 255, 255, 0.92);
       border-radius: 12px;
-      padding: 25px 15px;               /* slightly more padding for balance */
+      padding: 20px;
       text-align: center;
-      font-size: 1.35rem;               /* same font size for all */
+      font-size: 1.3rem;
       font-weight: bold;
-      min-height: 130px;                /* fixed minimum height → same visual size */
+      height: 120px;                /* fixed height for all tiles */
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
-      line-height: 1.35;                /* better line spacing */
+      width: 100%;                  /* ensure full width inside column */
     }
     .tile:hover {
       transform: translateY(-6px);
       box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-    }
-    .tile span {
-      display: block;                   /* force consistent text block */
     }
     .container {
       max-width: 1100px;
@@ -110,34 +107,35 @@
     ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
   </div>
 
-  <!-- Feature Tiles – now all same visual size -->
+  <!-- Feature Tiles – all columns now uniform -->
   <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
-    <div class="col" onclick="showPage('academic')">
-      <div class="tile"><span>Academic<br>Programmes</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('academic')">Academic<br>Programmes</div>
     </div>
-    <div class="col" onclick="showPage('maps')">
-      <div class="tile"><span>Campus<br>Maps</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('maps')">Campus<br>Maps</div>
     </div>
-    <div class="col" onclick="showPage('food')">
-      <div class="tile"><span>Food &<br>Cafe Menu</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('food')">Food &<br>Cafe Menu</div>
     </div>
-    <div class="col" onclick="showPage('hotlines')">
-      <div class="tile"><span>Emergency<br>Hotlines</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('hotlines')">Emergency<br>Hotlines</div>
     </div>
-    <div class="col" onclick="showPage('transport')">
-      <div class="tile"><span>Transport<br>Schedules</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('transport')">Transport<br>Schedules</div>
     </div>
-    <div class="col" onclick="showPage('lostfound')">
-      <div class="tile"><span>Lost &<br>Found</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('lostfound')">Lost &<br>Found</div>
     </div>
-    <div class="col d-flex justify-content-center" onclick="showPage('feedback')">
-      <div class="tile"><span>Feedback</span></div>
+    <div class="col">
+      <div class="tile" onclick="showPage('feedback')">Feedback</div>
     </div>
   </div>
 
 </div>
 
-<!-- Feature Pages (unchanged from previous version) -->
+<!-- ====================== Feature Pages (unchanged) ====================== -->
+
 <div id="academic" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Academic Programmes</h2>
