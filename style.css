@@ -76,3 +76,7 @@ body {
   margin: 20px auto;
   max-width: 1100px;
 }
+
+.back-btn {
+  margin-bottom: 20px;
+}
