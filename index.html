@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MMUbuddy - Login</title>
+  <title>MMUbuddy</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -13,38 +13,47 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      color: #333;
     }
+
+    /* Login Page */
     .login-container {
-      max-width: 500px;
-      margin: 80px auto;
+      max-width: 420px;
+      margin: 100px auto;
       background: rgba(255, 255, 255, 0.95);
-      padding: 40px;
+      padding: 40px 30px;
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
     .logo img {
-      max-width: 180px;
-      height: auto;
-      margin-bottom: 15px;
+      max-width: 160px;
+      margin-bottom: 20px;
+    }
+
+    /* Dashboard Style */
+    .header {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .tile {
       background-color: rgba(255, 255, 255, 0.92);
       border-radius: 12px;
       padding: 20px;
       text-align: center;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: bold;
       height: 120px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      transition: transform 0.2s;
+      transition: all 0.2s;
       cursor: pointer;
     }
     .tile:hover {
-      transform: translateY(-6px);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
     }
     .page-content {
       display: none;
@@ -55,121 +64,97 @@
       margin: 20px auto;
       max-width: 1100px;
     }
-    .back-btn {
-      margin-bottom: 20px;
-    }
   </style>
 </head>
 <body>
 
 <!-- ====================== LOGIN PAGE ====================== -->
-<div id="loginPage" class="container">
+<div id="loginPage">
   <div class="login-container text-center">
-    <!-- MMU Logo on Login Page -->
     <div class="logo">
       <img src="images/mmu-logo.jpg" alt="MMU Logo">
     </div>
-    
     <h2 class="mb-4">Welcome to MMU Buddy</h2>
     <h5 class="mb-4">Please select your role</h5>
 
-    <div class="row g-3">
-      <div class="col-12">
-        <button class="btn btn-primary w-100 py-3" onclick="selectRole('student')">Student</button>
-      </div>
-      <div class="col-12">
-        <button class="btn btn-success w-100 py-3" onclick="selectRole('academic')">Academic Staff</button>
-      </div>
-      <div class="col-12">
-        <button class="btn btn-secondary w-100 py-3" onclick="selectRole('nonacademic')">Non-Academic / Visitor</button>
-      </div>
+    <div class="d-grid gap-3">
+      <button class="btn btn-primary btn-lg" onclick="selectRole('student')">Student</button>
+      <button class="btn btn-success btn-lg" onclick="selectRole('academic')">Academic Staff</button>
+      <button class="btn btn-secondary btn-lg" onclick="loginAs('nonacademic')">Continue as Visitor</button>
     </div>
   </div>
 </div>
 
 <!-- ====================== STUDENT LOGIN FORM ====================== -->
-<div id="studentLogin" class="page-content container" style="display:none;">
-  <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
-  <h2>Student Login</h2>
+<div id="studentLogin" class="page-content container" style="display:none; max-width: 450px;">
+  <h3 class="text-center mb-4">Student Login</h3>
   <div class="mb-3">
     <label class="form-label">Full Name</label>
-    <input type="text" id="studentName" class="form-control" placeholder="Enter your name">
+    <input type="text" id="studentName" class="form-control" placeholder="Enter your full name">
   </div>
   <div class="mb-3">
     <label class="form-label">Student ID</label>
     <input type="text" id="studentID" class="form-control" placeholder="e.g. 123456789">
   </div>
-  <button class="btn btn-primary w-100" onclick="loginAs('student')">Login as Student</button>
+  <button class="btn btn-primary w-100" onclick="loginAs('student')">Login</button>
+  <button class="btn btn-link w-100 mt-2" onclick="backToLogin()">Back to Role Selection</button>
 </div>
 
 <!-- ====================== ACADEMIC LOGIN FORM ====================== -->
-<div id="academicLogin" class="page-content container" style="display:none;">
-  <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
-  <h2>Academic Staff Login</h2>
+<div id="academicLogin" class="page-content container" style="display:none; max-width: 450px;">
+  <h3 class="text-center mb-4">Academic Staff Login</h3>
   <div class="mb-3">
     <label class="form-label">Full Name</label>
-    <input type="text" id="academicName" class="form-control" placeholder="Enter your name">
+    <input type="text" id="academicName" class="form-control" placeholder="Enter your full name">
   </div>
   <div class="mb-3">
     <label class="form-label">Staff ID</label>
     <input type="text" id="academicID" class="form-control" placeholder="e.g. ST12345">
   </div>
-  <button class="btn btn-primary w-100" onclick="loginAs('academic')">Login as Academic</button>
+  <button class="btn btn-primary w-100" onclick="loginAs('academic')">Login</button>
+  <button class="btn btn-link w-100 mt-2" onclick="backToLogin()">Back to Role Selection</button>
 </div>
 
-<!-- ====================== MAIN DASHBOARD ====================== -->
+<!-- ====================== MAIN HOMEPAGE (Dashboard) ====================== -->
 <div id="dashboard" class="container" style="display:none;">
 
-  <div class="header">
+  <!-- Top Navigation Bar -->
+  <div class="header d-flex justify-content-between align-items-center">
     <div class="logo">
-      <img src="images/mmu-logo.jpg" alt="MMU Logo">
+      <img src="images/mmu-logo.jpg" alt="MMU Logo" style="max-width: 140px;">
     </div>
     <div class="welcome" id="userWelcome">Welcome to MMU Buddy</div>
+    <button id="logoutBtn" class="btn btn-outline-danger btn-sm" onclick="logout()" style="display:none;">
+      Log Out
+    </button>
   </div>
 
-  <div class="announcements">
+  <div class="announcements text-center my-4">
     ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
   </div>
 
   <!-- Feature Tiles -->
   <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
-    <div class="col">
-      <div class="tile" onclick="showPage('event')">Event</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('academic')">Academic<br>Programmes</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('maps')">Campus<br>Maps</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('food')">Food &<br>Cafe Menu</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('hotlines')">Emergency<br>Hotlines</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('transport')">Transport<br>Schedules</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('lostfound')">Lost &<br>Found</div>
-    </div>
-    <div class="col">
-      <div class="tile" onclick="showPage('feedback')">Feedback</div>
-    </div>
+    <div class="col"><div class="tile" onclick="showPage('event')">Event</div></div>
+    <div class="col"><div class="tile" onclick="showPage('academic')">Academic<br>Programmes</div></div>
+    <div class="col"><div class="tile" onclick="showPage('maps')">Campus<br>Maps</div></div>
+    <div class="col"><div class="tile" onclick="showPage('food')">Food &<br>Cafe Menu</div></div>
+    <div class="col"><div class="tile" onclick="showPage('hotlines')">Emergency<br>Hotlines</div></div>
+    <div class="col"><div class="tile" onclick="showPage('transport')">Transport<br>Schedules</div></div>
+    <div class="col"><div class="tile" onclick="showPage('lostfound')">Lost &<br>Found</div></div>
+    <div class="col"><div class="tile" onclick="showPage('feedback')">Feedback</div></div>
   </div>
 </div>
 
-<!-- ====================== Feature Pages (You can add more content later) ====================== -->
-<div id="event" class="page-content container">
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
-  <h2>Upcoming Events</h2>
-  <p>Here are the latest campus events:</p>
-  <!-- Add your event cards here -->
-</div>
-
-<!-- Other pages: academic, maps, food, hotlines, transport, lostfound, feedback -->
-<!-- (You can copy them from previous version) -->
+<!-- Feature Pages (you can expand later) -->
+<div id="event" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Upcoming Events</h2> </div>
+<div id="academic" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Academic Programmes</h2> </div>
+<div id="maps" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Campus Maps</h2> </div>
+<div id="food" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Food & Cafe Menu</h2> </div>
+<div id="hotlines" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Emergency Hotlines</h2> </div>
+<div id="transport" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Transport Schedules</h2> </div>
+<div id="lostfound" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Lost & Found</h2> </div>
+<div id="feedback" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Feedback</h2> </div>
 
 <script>
   let currentUserRole = '';
@@ -189,17 +174,20 @@
 
   function loginAs(role) {
     currentUserRole = role;
-    let name = "User";
+    let welcomeText = "Welcome to MMU Buddy";
 
     if (role === 'student') {
-      name = document.getElementById('studentName').value || "Student";
+      const name = document.getElementById('studentName').value || "Student";
+      welcomeText = `Welcome, ${name}`;
     } else if (role === 'academic') {
-      name = document.getElementById('academicName').value || "Academic Staff";
+      const name = document.getElementById('academicName').value || "Academic Staff";
+      welcomeText = `Welcome, ${name}`;
     } else if (role === 'nonacademic') {
-      name = "Visitor";
+      welcomeText = "Welcome, Visitor";
     }
 
-    document.getElementById('userWelcome').innerText = `Welcome, ${name}`;
+    document.getElementById('userWelcome').innerText = welcomeText;
+    document.getElementById('logoutBtn').style.display = (role === 'student' || role === 'academic') ? 'block' : 'none';
     document.getElementById('dashboard').style.display = 'block';
   }
 
@@ -208,8 +196,14 @@
     document.getElementById('loginPage').style.display = 'block';
   }
 
+  function logout() {
+    if (confirm("Are you sure you want to log out?")) {
+      location.reload();   // Simple way to go back to login
+    }
+  }
+
   function showPage(pageId) {
-    // Permission Check
+    // Permission Control
     if (currentUserRole === 'nonacademic') {
       if (!['academic', 'maps', 'food'].includes(pageId)) {
         alert("YOU ARE NOT ALLOWED TO LOOK AT THIS SECTION. THANK YOU.");
