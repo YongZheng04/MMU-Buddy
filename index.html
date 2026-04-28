@@ -61,14 +61,14 @@
       text-align: center;
       font-size: 1.3rem;
       font-weight: bold;
-      height: 120px;                /* fixed height for all tiles */
+      height: 120px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
-      width: 100%;                  /* ensure full width inside column */
+      width: 100%;
     }
     .tile:hover {
       transform: translateY(-6px);
@@ -94,7 +94,7 @@
 
 <div class="container" id="dashboard">
 
-  <!-- Header with real logo -->
+  <!-- Header -->
   <div class="header">
     <div class="logo">
       <img src="images/mmu-logo.jpg" alt="MMU Logo">
@@ -107,8 +107,13 @@
     ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
   </div>
 
-  <!-- Feature Tiles – all columns now uniform -->
+  <!-- Feature Tiles -->
   <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
+    <!-- New Event Button - Added First -->
+    <div class="col">
+      <div class="tile" onclick="showPage('event')">Event</div>
+    </div>
+    
     <div class="col">
       <div class="tile" onclick="showPage('academic')">Academic<br>Programmes</div>
     </div>
@@ -134,7 +139,41 @@
 
 </div>
 
-<!-- ====================== Feature Pages (unchanged) ====================== -->
+<!-- ====================== New Event Page ====================== -->
+<div id="event" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
+  <h2>Upcoming Events</h2>
+  <p>Here are the latest campus events:</p>
+  
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">MMU Tech Carnival 2026</h5>
+      <p class="card-text"><strong>Date:</strong> 15 May 2026 &nbsp;&nbsp; <strong>Time:</strong> 9:00 AM - 5:00 PM</p>
+      <p class="card-text"><strong>Venue:</strong> MMU Cyberjaya Grand Hall</p>
+      <p class="card-text">Join us for workshops, competitions, and networking with industry leaders. Open to all students!</p>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Career Talk: Future of AI</h5>
+      <p class="card-text"><strong>Date:</strong> 22 April 2026 &nbsp;&nbsp; <strong>Time:</strong> 2:30 PM - 4:00 PM</p>
+      <p class="card-text"><strong>Venue:</strong> FCM Lecture Hall A</p>
+      <p class="card-text">Guest speaker from Google. All students are welcome to attend.</p>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Sports Day 2026</h5>
+      <p class="card-text"><strong>Date:</strong> 10 June 2026 &nbsp;&nbsp; <strong>Time:</strong> 8:00 AM onwards</p>
+      <p class="card-text"><strong>Venue:</strong> MMU Sports Complex</p>
+      <p class="card-text">Various sports competitions and fun activities for all faculties.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== Other Feature Pages (unchanged) ====================== -->
 
 <div id="academic" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
