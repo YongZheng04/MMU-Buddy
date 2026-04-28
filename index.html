@@ -23,12 +23,10 @@
       border-radius: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-    .logo {
-      text-align: center;
-      font-size: 2.8rem;
-      font-weight: bold;
-      color: #d32f2f;
-      margin-bottom: 20px;
+    .logo img {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 15px;
     }
     .tile {
       background-color: rgba(255, 255, 255, 0.92);
@@ -60,20 +58,20 @@
     .back-btn {
       margin-bottom: 20px;
     }
-    .alert-restricted {
-      color: #d32f2f;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
 
 <!-- ====================== LOGIN PAGE ====================== -->
 <div id="loginPage" class="container">
-  <div class="login-container">
-    <div class="logo">((( o ))) MMU</div>
-    <h2 class="text-center mb-4">Welcome to MMU Buddy</h2>
-    <h5 class="text-center mb-4">Please select your role</h5>
+  <div class="login-container text-center">
+    <!-- MMU Logo on Login Page -->
+    <div class="logo">
+      <img src="images/mmu-logo.jpg" alt="MMU Logo">
+    </div>
+    
+    <h2 class="mb-4">Welcome to MMU Buddy</h2>
+    <h5 class="mb-4">Please select your role</h5>
 
     <div class="row g-3">
       <div class="col-12">
@@ -119,7 +117,7 @@
   <button class="btn btn-primary w-100" onclick="loginAs('academic')">Login as Academic</button>
 </div>
 
-<!-- ====================== MAIN DASHBOARD (After Login) ====================== -->
+<!-- ====================== MAIN DASHBOARD ====================== -->
 <div id="dashboard" class="container" style="display:none;">
 
   <div class="header">
@@ -162,21 +160,16 @@
   </div>
 </div>
 
-<!-- ====================== Feature Pages ====================== -->
-<!-- (Same as previous version - I'll keep them short here for brevity) -->
-
+<!-- ====================== Feature Pages (You can add more content later) ====================== -->
 <div id="event" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   <h2>Upcoming Events</h2>
-  <!-- Event cards here (same as before) -->
-  <div class="card mb-3"><div class="card-body">
-    <h5>MMU Tech Carnival 2026</h5>
-    <p><strong>Date:</strong> 15 May 2026 | <strong>Time:</strong> 9:00 AM - 5:00 PM</p>
-    <p><strong>Venue:</strong> Grand Hall, Cyberjaya</p>
-  </div></div>
+  <p>Here are the latest campus events:</p>
+  <!-- Add your event cards here -->
 </div>
 
-<!-- Add other pages (academic, maps, food, hotlines, transport, lostfound, feedback) similarly -->
+<!-- Other pages: academic, maps, food, hotlines, transport, lostfound, feedback -->
+<!-- (You can copy them from previous version) -->
 
 <script>
   let currentUserRole = '';
@@ -196,7 +189,7 @@
 
   function loginAs(role) {
     currentUserRole = role;
-    let name = '';
+    let name = "User";
 
     if (role === 'student') {
       name = document.getElementById('studentName').value || "Student";
@@ -207,7 +200,6 @@
     }
 
     document.getElementById('userWelcome').innerText = `Welcome, ${name}`;
-    document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
     document.getElementById('dashboard').style.display = 'block';
   }
 
