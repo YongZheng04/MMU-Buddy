@@ -16,27 +16,32 @@
       color: #333;
     }
 
-    /* Login Page */
-    .login-container {
-      max-width: 420px;
-      margin: 120px auto;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 40px 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-    .logo img {
-      max-width: 160px;
-      margin-bottom: 20px;
-    }
-
-    /* Dashboard */
     .header {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       padding: 15px 25px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
     }
+
+    .welcome {
+      font-size: 1.6rem;
+      font-weight: bold;           /* Made bold as requested */
+      color: #d32f2f;
+    }
+
+    .announcements {
+      background: rgba(255, 255, 255, 0.95);   /* White box */
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #d32f2f;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
     .tile {
       background-color: rgba(255, 255, 255, 0.92);
       border-radius: 12px;
@@ -55,6 +60,7 @@
     .tile:hover {
       transform: translateY(-5px);
     }
+
     .page-content {
       display: none;
       padding: 30px;
@@ -68,7 +74,7 @@
 </head>
 <body>
 
-<!-- 1. LOGIN PAGE (Role Selection) -->
+<!-- ====================== LOGIN PAGE ====================== -->
 <div id="loginPage">
   <div class="login-container text-center">
     <div class="logo">
@@ -85,41 +91,11 @@
   </div>
 </div>
 
-<!-- 2. STUDENT LOGIN FORM -->
-<div id="studentLogin" class="page-content container" style="display:none; max-width: 450px;">
-  <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
-  <h3 class="text-center mb-4">Student Login</h3>
-  <div class="mb-3">
-    <label class="form-label">Full Name</label>
-    <input type="text" id="studentName" class="form-control" placeholder="Enter your full name">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Student ID</label>
-    <input type="text" id="studentID" class="form-control" placeholder="e.g. 123456789">
-  </div>
-  <button class="btn btn-primary w-100" onclick="loginAs('student')">Login</button>
-</div>
-
-<!-- 3. ACADEMIC LOGIN FORM -->
-<div id="academicLogin" class="page-content container" style="display:none; max-width: 450px;">
-  <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
-  <h3 class="text-center mb-4">Academic Staff Login</h3>
-  <div class="mb-3">
-    <label class="form-label">Full Name</label>
-    <input type="text" id="academicName" class="form-control" placeholder="Enter your full name">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Staff ID</label>
-    <input type="text" id="academicID" class="form-control" placeholder="e.g. ST12345">
-  </div>
-  <button class="btn btn-primary w-100" onclick="loginAs('academic')">Login</button>
-</div>
-
 <!-- ====================== MAIN HOMEPAGE ====================== -->
 <div id="dashboard" class="container" style="display:none;">
 
   <!-- Top Bar -->
-  <div class="header d-flex justify-content-between align-items-center mb-4">
+  <div class="header d-flex justify-content-between align-items-center">
     <div class="logo">
       <img src="images/mmu-logo.jpg" alt="MMU Logo" style="max-width: 140px;">
     </div>
@@ -129,7 +105,8 @@
     </button>
   </div>
 
-  <div class="announcements text-center my-4">
+  <!-- Announcements in White Box -->
+  <div class="announcements">
     ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
   </div>
 
@@ -146,15 +123,46 @@
   </div>
 </div>
 
-<!-- Feature Pages (placeholder) -->
-<div id="event" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Upcoming Events</h2> </div>
-<div id="academic" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Academic Programmes</h2> </div>
-<div id="maps" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Campus Maps</h2> </div>
-<div id="food" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Food & Cafe Menu</h2> </div>
-<div id="hotlines" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Emergency Hotlines</h2> </div>
-<div id="transport" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Transport Schedules</h2> </div>
-<div id="lostfound" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Lost & Found</h2> </div>
-<div id="feedback" class="page-content container"> <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> <h2>Feedback</h2> </div>
+<!-- Feature Pages (You can expand these later) -->
+<div id="event" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Upcoming Events</h2> 
+</div>
+
+<div id="academic" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Academic Programmes</h2> 
+</div>
+
+<div id="maps" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Campus Maps</h2> 
+</div>
+
+<div id="food" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Food & Cafe Menu</h2> 
+</div>
+
+<div id="hotlines" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Emergency Hotlines</h2> 
+</div>
+
+<div id="transport" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Transport Schedules</h2> 
+</div>
+
+<div id="lostfound" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Lost & Found</h2> 
+</div>
+
+<div id="feedback" class="page-content container"> 
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
+  <h2>Feedback</h2> 
+</div>
 
 <script>
   let currentUserRole = '';
@@ -189,7 +197,6 @@
     document.getElementById('userWelcome').innerText = welcomeText;
     document.getElementById('logoutBtn').style.display = (role === 'student' || role === 'academic') ? 'block' : 'none';
     
-    // Hide all login forms and show dashboard
     document.getElementById('studentLogin').style.display = 'none';
     document.getElementById('academicLogin').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
