@@ -72,6 +72,7 @@
     ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
   </div>
 
+  <!-- Feature Tiles -->
   <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
     <div class="col"><div class="tile" onclick="showPage('event')">Event</div></div>
     <div class="col"><div class="tile" onclick="showPage('academic')">Academic<br>Programmes</div></div>
@@ -84,38 +85,164 @@
   </div>
 </div>
 
-<!-- Feature Pages -->
-<div id="event" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Upcoming Events</h2> 
+<!-- ====================== FEATURE PAGES ====================== -->
+
+<!-- ====================== EVENT PAGE ====================== -->
+<div id="event" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
+  
+  <h2 class="mb-4">Campus Events & Activities</h2>
+
+  <!-- Search and Filter Bar -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <input type="text" id="eventSearch" class="form-control" placeholder="Search events..." onkeyup="filterEvents()">
+    </div>
+    <div class="col-md-6">
+      <input type="date" id="eventDateFilter" class="form-control" onchange="filterEvents()">
+    </div>
+  </div>
+
+  <!-- Events List -->
+  <div id="eventsList">
+    <!-- Events will be populated by JavaScript -->
+  </div>
 </div>
-<div id="academic" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Academic Programmes</h2> 
+
+<!-- ====================== ACADEMIC PROGRAMMES PAGE ====================== -->
+<div id="academic" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
+  
+  <h2 class="mb-4">Academic Programmes</h2>
+  
+  <div class="row">
+    <div class="col-lg-8">
+      <p class="lead">
+        Explore all undergraduate and postgraduate programmes offered by Multimedia University (MMU) 
+        across its three campuses: Cyberjaya, Melaka, and Johor.
+      </p>
+      
+      <p>
+        MMU offers a wide range of programmes in Engineering, Computing & Informatics, Business, 
+        Law, Creative Arts, and more. Whether you are looking for foundation, diploma, bachelor’s, 
+        or postgraduate studies, you can find the latest information on the official MMU website.
+      </p>
+
+      <div class="mt-4">
+        <a href="https://www.mmu.edu.my/pogrammes-all/" 
+           target="_blank" 
+           class="btn btn-success btn-lg">
+          View All Programmes on Official MMU Website →
+        </a>
+      </div>
+
+      <div class="mt-5">
+        <h5>Popular Faculties at MMU:</h5>
+        <ul>
+          <li>Faculty of Computing and Informatics</li>
+          <li>Faculty of Engineering</li>
+          <li>Faculty of Business</li>
+          <li>Faculty of Law</li>
+          <li>Faculty of Cinematic Arts</li>
+          <li>Faculty of Medicine & Health Sciences</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right side image / illustration -->
+    <div class="col-lg-4 text-center d-none d-lg-block">
+      <img src="https://via.placeholder.com/400x500?text=MMU+Programmes" 
+           alt="MMU Academic Programmes" 
+           class="img-fluid rounded shadow">
+    </div>
+  </div>
 </div>
-<div id="maps" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Campus Maps</h2> 
+
+<!-- Campus Maps Page -->
+<div id="maps" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
+  <h2>Campus Maps</h2>
+  <p class="lead">Select your campus to view the map:</p>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card h-100 text-center" onclick="showCampusMap('cyberjaya')" style="cursor: pointer;">
+        <div class="card-body">
+          <h5>Cyberjaya Campus</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 text-center" onclick="showCampusMap('melaka')" style="cursor: pointer;">
+        <div class="card-body">
+          <h5>Melaka Campus</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mapDisplay" class="mt-5 text-center" style="display: none;">
+    <h5 id="mapTitle" class="mb-3"></h5>
+    <img id="campusMapImage" src="" alt="Campus Map" class="img-fluid rounded shadow">
+  </div>
 </div>
-<div id="food" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Food & Cafe Menu</h2> 
+
+<!-- ====================== FOOD & CAFE MENU PAGE ====================== -->
+<div id="food" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
+  
+  <h2 class="mb-4">Food & Cafe Menu</h2>
+  <p class="lead mb-4">Select your campus to view available restaurants and menus:</p>
+
+  <!-- Campus Selection -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-6">
+      <div class="card h-100 text-center" onclick="showCampusFood('cyberjaya')" style="cursor: pointer;">
+        <div class="card-body">
+          <h5 class="card-title">Cyberjaya Campus</h5>
+          <p class="card-text">Main campus with many food options</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 text-center" onclick="showCampusFood('melaka')" style="cursor: pointer;">
+        <div class="card-body">
+          <h5 class="card-title">Melaka Campus</h5>
+          <p class="card-text">Historic campus with local favorites</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restaurant List -->
+  <div id="restaurantList" class="row g-4" style="display: none;"></div>
+
+  <!-- Menu Display Area -->
+  <div id="menuDisplay" class="mt-5" style="display: none;">
+    <button class="btn btn-secondary mb-3" onclick="backToRestaurants()">← Back to Restaurants</button>
+    <h4 id="restaurantName" class="mb-4"></h4>
+    <div id="menuItems" class="row"></div>
+  </div>
 </div>
-<div id="hotlines" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Emergency Hotlines</h2> 
+
+<div id="hotlines" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
+  <h2>Emergency Hotlines</h2>
 </div>
-<div id="transport" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Transport Schedules</h2> 
+
+<div id="transport" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
+  <h2>Transport Schedules</h2>
 </div>
-<div id="lostfound" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Lost & Found</h2> 
+
+<div id="lostfound" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
+  <h2>Lost & Found</h2>
 </div>
-<div id="feedback" class="page-content container"> 
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button> 
-  <h2>Feedback</h2> 
+
+<div id="feedback" class="page-content container">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
+  <h2>Feedback</h2>
 </div>
 
 <script src="script.js"></script>
