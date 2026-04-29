@@ -225,19 +225,94 @@
   </div>
 </div>
 
+<!-- ====================== Emergency Hotlines PAGE ====================== -->
 <div id="hotlines" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
-  <h2>Emergency Hotlines</h2>
+  
+  <h2 class="mb-4">Emergency Hotlines</h2>
+  <p class="lead mb-4">Select your campus:</p>
+
+  <!-- Campus Buttons -->
+  <div class="d-flex gap-3 mb-4">
+    <button class="btn btn-primary" onclick="showHotlines('cyberjaya')">
+      Cyberjaya Campus
+    </button>
+    <button class="btn btn-secondary" onclick="showHotlines('melaka')">
+      Melaka Campus
+    </button>
+  </div>
+
+  <!-- Hotline Display -->
+  <div id="hotlineDisplay" style="display:none;">
+    <h4 id="campusTitle" class="mb-3"></h4>
+    <ul class="list-group" id="hotlineList"></ul>
+  </div>
 </div>
 
+<!-- ====================== Transport Schedules PAGE ====================== -->
 <div id="transport" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
-  <h2>Transport Schedules</h2>
+
+  <h2 class="mb-4">Transport Schedules</h2>
+  <p class="lead mb-4">Select your campus:</p>
+
+  <!-- Campus Buttons -->
+  <div class="d-flex gap-3 mb-4">
+    <button class="btn btn-primary" onclick="showTransport('cyberjaya')">
+      Cyberjaya Campus
+    </button>
+    <button class="btn btn-secondary" onclick="showTransport('melaka')">
+      Melaka Campus
+    </button>
+  </div>
+
+  <!-- Transport Display -->
+  <div id="transportDisplay" class="row g-4" style="display:none;"></div>
 </div>
 
 <div id="lostfound" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
-  <h2>Lost & Found</h2>
+
+  <h2 class="mb-4">Lost & Found</h2>
+
+  <!-- Top Controls -->
+  <div class="d-flex justify-content-between mb-3">
+    <button class="btn btn-success" onclick="openForm()">+ Add Item</button>
+
+    <input type="text" id="searchInput" class="form-control w-50" 
+           placeholder="Search items..." onkeyup="filterLostItems()">
+  </div>
+
+  <!-- Filter Buttons -->
+  <div class="mb-4">
+    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('today')">Today</button>
+    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('yesterday')">Yesterday</button>
+    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('week')">Last 7 Days</button>
+    <button class="btn btn-outline-secondary btn-sm" onclick="loadItems()">Reset</button>
+  </div>
+
+  <!-- Items Display -->
+  <div id="lostItems" class="row g-3"></div>
+</div>
+
+<!-- Modal Form -->
+<div id="lostFormModal" class="modal" tabindex="-1" style="display:none;">
+  <div class="modal-dialog">
+    <div class="modal-content p-3">
+      <h4>Add Lost/Found Item</h4>
+
+      <input type="date" id="lfDate" class="form-control mb-2">
+      <input type="time" id="lfTime" class="form-control mb-2">
+      <input type="text" id="lfVenue" class="form-control mb-2" placeholder="Venue">
+      <input type="text" id="lfItem" class="form-control mb-2" placeholder="Item">
+      <textarea id="lfDesc" class="form-control mb-2" placeholder="Description"></textarea>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary" onclick="closeForm()">Cancel</button>
+        <button class="btn btn-primary" onclick="addItem()">Post</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="feedback" class="page-content container">
