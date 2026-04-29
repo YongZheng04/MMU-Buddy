@@ -334,3 +334,306 @@ function backToRestaurants() {
   document.getElementById('menuDisplay').style.display = 'none';
   document.getElementById('restaurantList').style.display = 'flex';
 }
+
+// ---> Emergency Hotlines Function <---
+// Hotline Data
+const hotlineData = {
+  cyberjaya: [
+    { name: "MMU Security Hotline", number: "03-8312 5939" },
+    { name: "MMU FMD Hotline", number: "013-613 5117" },
+    { name: "Fire Department (Cyberjaya)", number: "03-8318 4142" },
+    { name: "Police (Cyberjaya)", number: "03-8318 2222" },
+    { name: "Hospital (Cyberjaya)", number: "03-8873 3500" },
+    { name: "Hospital (Putrajaya)", number: "03-8312 4200" }
+  ],
+  melaka: [] // can fill later
+};
+
+// Show Hotlines
+function showHotlines(campus) {
+  const list = document.getElementById('hotlineList');
+  const title = document.getElementById('campusTitle');
+  const display = document.getElementById('hotlineDisplay');
+
+  list.innerHTML = '';
+
+  if (campus === 'cyberjaya') {
+    title.textContent = "Cyberjaya Campus Emergency Numbers";
+  } else if (campus === 'melaka') {
+    title.textContent = "Melaka Campus Emergency Numbers";
+  }
+
+  const data = hotlineData[campus];
+
+  if (!data || data.length === 0) {
+    list.innerHTML = `<li class="list-group-item text-muted">No data available yet.</li>`;
+  } else {
+    data.forEach(item => {
+      const li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between";
+      li.innerHTML = `
+        <span>${item.name}</span>
+        <strong>${item.number}</strong>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  display.style.display = 'block';
+}
+
+// ---> Transport Schedules Function <---
+// Transport Data
+const transportData = {
+  cyberjaya: [
+    {
+      name: "Rapid KL Bus T404",
+      desc: "Connects Cyberjaya areas to nearby MRT/LRT stations",
+      frequency: "Every 20–30 minutes",
+      image: "images/T504bus.jpg", // you can add your own image
+      link: "https://maps.app.goo.gl/cs3Hhj7rs7uXUAPY8"
+    },
+    {
+      name: "Rapid KL Bus T405",
+      desc: "Serves Cyberjaya residential & commercial zones",
+      frequency: "Every 20–30 minutes",
+      image: "images/T505bus.jpg",
+      link: "https://maps.app.goo.gl/kuynBFsRmW4Psdbq6"
+    }
+  ],
+  melaka: []
+};
+
+// Show Transport
+function showTransport(campus) {
+  const container = document.getElementById('transportDisplay');
+  container.innerHTML = '';
+  container.style.display = 'flex';
+
+  const data = transportData[campus];
+
+  if (!data || data.length === 0) {
+    container.innerHTML = `<p class="text-muted">No data available yet.</p>`;
+    return;
+  }
+
+  data.forEach(bus => {
+    const col = document.createElement('div');
+    col.className = 'col-md-6';
+
+    col.innerHTML = `
+      <div class="card h-100 shadow">
+        <img src="${bus.image}" class="card-img-top" alt="Bus Image">
+        <div class="card-body">
+          <h5 class="card-title">${bus.name}</h5>
+          <p>${bus.desc}</p>
+          <p><strong>Frequency:</strong> ${bus.frequency}</p>
+
+          <a href="${bus.link}" target="_blank" class="btn btn-success">
+            Check Live Timing (Google Maps)
+          </a>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+// ---> Lost & Found Function <---
+// Store items
+let lostItems = [];
+
+// Open form
+function openForm() {
+  document.getElementById('lostFormModal').style.display = 'block';
+}
+
+// Close form
+function closeForm() {
+  document.getElementById('lostFormModal').style.display = 'none';
+}
+
+// Post item
+function postItem() {
+  const date = document.getElementById('lfDate').value;
+  const time = document.getElementById('lfTime').value;
+  const venue = document.getElementById('lfVenue').value.trim();
+  const item = document.getElementById('lfItem').value.trim();
+  const desc = document.getElementById('lfDesc').value.trim();
+
+  if (!date || !time || !venue || !item || !desc) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  const newItem = {
+    date,
+    time,
+    venue,
+    item,
+    desc
+  };
+
+  lostItems.push(newItem);
+  closeForm();
+  displayItems(lostItems);
+
+  // reset form
+  document.getElementById('lfDate').value = '';
+  document.getElementById('lfTime').value = '';
+  document.getElementById('lfVenue').value = '';
+  document.getElementById('lfItem').value = '';
+  document.getElementById('lfDesc').value = '';
+}
+
+// Display items
+function displayItems(items) {
+  const container = document.getElementById('lostFoundList');
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    container.innerHTML = '<p class="text-muted">No items posted yet.</p>';
+    return;
+  }
+
+  items.forEach(i => {
+    const col = document.createElement('div');
+    col.className = 'col-md-6';
+
+    col.innerHTML = `
+      <div class="card p-3 shadow">
+        <h5>${i.item}</h5>
+        <p><strong>Date:</strong> ${i.date}</p>
+        <p><strong>Time:</strong> ${i.time}</p>
+        <p><strong>Venue:</strong> ${i.venue}</p>
+        <p>${i.desc}</p>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+// Search filter
+function filterItems() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+
+  const filtered = lostItems.filter(i =>
+    i.item.toLowerCase().includes(keyword) ||
+    i.venue.toLowerCase().includes(keyword) ||
+    i.desc.toLowerCase().includes(keyword)
+  );
+
+  displayItems(filtered);
+}
+
+// Date filter
+function filterByDate(type) {
+  const today = new Date();
+
+  const filtered = lostItems.filter(i => {
+    const itemDate = new Date(i.date);
+    const diffDays = (today - itemDate) / (1000 * 60 * 60 * 24);
+
+    if (type === 'today') return diffDays < 1;
+    if (type === 'yesterday') return diffDays >= 1 && diffDays < 2;
+    if (type === 'week') return diffDays <= 7;
+
+    return true;
+  });
+
+  displayItems(filtered);
+}
+
+// ---> Lost & Found Function <---
+// Storage
+let lostItemsData = [];
+
+// Open/Close Modal
+function openForm() {
+  document.getElementById('lostFormModal').style.display = 'block';
+}
+
+function closeForm() {
+  document.getElementById('lostFormModal').style.display = 'none';
+}
+
+// Add Item
+function addItem() {
+  const date = document.getElementById('lfDate').value;
+  const time = document.getElementById('lfTime').value;
+  const venue = document.getElementById('lfVenue').value.trim();
+  const item = document.getElementById('lfItem').value.trim();
+  const desc = document.getElementById('lfDesc').value.trim();
+
+  if (!date || !time || !venue || !item || !desc) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  lostItemsData.push({ date, time, venue, item, desc });
+
+  closeForm();
+  loadItems();
+}
+
+// Display Items
+function loadItems(data = lostItemsData) {
+  const container = document.getElementById('lostItems');
+  container.innerHTML = '';
+
+  if (data.length === 0) {
+    container.innerHTML = `<p class="text-muted">No items posted.</p>`;
+    return;
+  }
+
+  data.forEach(entry => {
+    const col = document.createElement('div');
+    col.className = "col-md-6";
+
+    col.innerHTML = `
+      <div class="card shadow">
+        <div class="card-body">
+          <h5>${entry.item}</h5>
+          <p>${entry.desc}</p>
+          <p><strong>Venue:</strong> ${entry.venue}</p>
+          <p><strong>Date:</strong> ${entry.date} | ${entry.time}</p>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+// Search Filter
+function filterLostItems() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+
+  const filtered = lostItemsData.filter(item =>
+    item.item.toLowerCase().includes(keyword) ||
+    item.desc.toLowerCase().includes(keyword) ||
+    item.venue.toLowerCase().includes(keyword)
+  );
+
+  loadItems(filtered);
+}
+
+// Date Filter
+function filterByDate(type) {
+  const today = new Date();
+
+  const filtered = lostItemsData.filter(entry => {
+    const itemDate = new Date(entry.date);
+    const diffDays = (today - itemDate) / (1000 * 60 * 60 * 24);
+
+    if (type === 'today') return diffDays < 1;
+    if (type === 'yesterday') return diffDays >= 1 && diffDays < 2;
+    if (type === 'week') return diffDays <= 7;
+
+    return true;
+  });
+
+  loadItems(filtered);
+}
