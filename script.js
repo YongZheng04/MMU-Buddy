@@ -1,5 +1,20 @@
+// Disable right-click
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
+document.addEventListener('keydown', function(e) {
+  if (e.key === "F12" || 
+     (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C")) ||
+     (e.ctrlKey && e.key === "u")) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// ====================== GLOBAL VARIABLES ======================
 let currentUserRole = '';
 
+// ====================== LOGIN & ROLE MANAGEMENT ======================
 function selectRole(role) {
   currentUserRole = role;
   document.getElementById('loginPage').style.display = 'none';
@@ -13,39 +28,80 @@ function selectRole(role) {
   }
 }
 
+// ====================== USER DATABASE ======================
+const usersDatabase = {
+  students: [
+    { id: "1211108445", name: "YAP YONG ZHENG"},
+  ],
+  academic: [
+    { id: "ST0001", name: "YAP YONG ZHENG"},
+  ]
+};
+
+// ====================== LOGIN FUNCTIONS ======================
 function loginAs(role) {
-  currentUserRole = role;
-  let welcomeText = "Welcome to MMU Buddy";
+  let name = "";
+  let id = "";
+  let welcomeText = "";
 
   if (role === 'student') {
-    const name = document.getElementById('studentName').value.trim();
-    const id = document.getElementById('studentID').value.trim();
-    if (!name || !id) {
-      alert("Please fill in both Name and Student ID.");
+    name = document.getElementById('studentName').value.trim();
+    id = document.getElementById('studentID').value.trim();
+
+    const student = usersDatabase.students.find(s => 
+      s.id === id && s.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!student) {
+      alert("❌ Invalid Student Name or ID. Please try again.");
       return;
     }
-    welcomeText = `Welcome, ${name}`;
+
+    welcomeText = `Welcome, ${student.name}`;
+    currentUserRole = 'student';
+    // You can save more user info if needed
+    window.currentUser = student;
+
   } 
   else if (role === 'academic') {
-    const name = document.getElementById('academicName').value.trim();
-    const id = document.getElementById('academicID').value.trim();
-    if (!name || !id) {
-      alert("Please fill in both Name and Staff ID.");
+    name = document.getElementById('academicName').value.trim();
+    id = document.getElementById('academicID').value.trim();
+
+    const staff = usersDatabase.academic.find(s => 
+      s.id === id && s.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!staff) {
+      alert("❌ Invalid Staff Name or Staff ID.");
       return;
     }
-    welcomeText = `Welcome, ${name}`;
+
+    welcomeText = `Welcome, ${staff.name}`;
+    currentUserRole = 'academic';
+    window.currentUser = staff;
   } 
   else if (role === 'nonacademic') {
     welcomeText = "Welcome, Visitor";
+    currentUserRole = 'nonacademic';
   }
 
+  // Update UI
   document.getElementById('userWelcome').innerText = welcomeText;
-  document.getElementById('logoutBtn').style.display = (role === 'student' || role === 'academic') ? 'block' : 'none';
+  document.getElementById('logoutBtn').style.display = 
+    (role === 'student' || role === 'academic') ? 'block' : 'none';
 
+  // Hide login pages
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('studentLogin').style.display = 'none';
   document.getElementById('academicLogin').style.display = 'none';
+
+  controlAccess(currentUserRole);
   document.getElementById('dashboard').style.display = 'block';
+
+  // Add this at the end of loginAs() function
+  if (window.currentUser) {
+  console.log("Logged in user:", window.currentUser);
+}
 }
 
 function backToLogin() {
@@ -60,23 +116,59 @@ function logout() {
   }
 }
 
-function showPage(pageId) {
-  if (currentUserRole === 'nonacademic') {
-    if (!['academic', 'maps', 'food'].includes(pageId)) {
-      alert("YOU ARE NOT ALLOWED TO LOOK AT THIS SECTION. THANK YOU.");
-      return;
-    }
-  }
-  if (currentUserRole === 'academic') {
-    if (['lostfound', 'feedback'].includes(pageId)) {
-      alert("YOU ARE NOT ALLOWED TO LOOK AT THIS SECTION. THANK YOU.");
-      return;
-    }
+// ====================== ROLE ACCESS CONTROL ======================
+function controlAccess(role) {
+  const tiles = document.querySelectorAll('#dashboard .tile');
+
+  // Show all tiles first
+  tiles.forEach(tile => tile.parentElement.style.display = 'block');
+
+  if (role === 'nonacademic') {
+    // Visitors can only access: Academic Programmes, Maps, Food
+    tiles.forEach(tile => {
+      const text = tile.textContent.toLowerCase();
+      const parentCol = tile.parentElement;
+
+      if (!text.includes('academic') && 
+          !text.includes('map') && 
+          !text.includes('food')) {
+        parentCol.style.display = 'none';
+      }
+    });
   }
 
+  if (role === 'academic') {
+    // Academic staff cannot access: Lost & Found, Feedback
+    tiles.forEach(tile => {
+      const text = tile.textContent.toLowerCase();
+      const parentCol = tile.parentElement;
+
+      if (text.includes('lost')) {
+        parentCol.style.display = 'none';
+      }
+    });
+  }
+}
+
+// ====================== PAGE NAVIGATION ======================
+function showPage(pageId) {
   document.getElementById('dashboard').style.display = 'none';
-  document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
-  document.getElementById(pageId).style.display = 'block';
+  document.querySelectorAll('.page-content').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  const page = document.getElementById(pageId);
+  if (page) {
+    page.style.display = 'block';
+  }
+
+if (pageId === 'event') {
+    loadEvents();
+    filterEvents();
+  }
+  if (pageId === 'feedback') {
+    initFeedback();
+  }
 }
 
 function showDashboard() {
@@ -84,127 +176,149 @@ function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
 }
 
-// Event function
-const eventsData = [
-  {
-    id: 1,
-    title: "MMU Tech Carnival 2026",
-    date: "2026-05-15",
-    time: "09:00 AM - 05:00 PM",
-    venue: "Grand Hall, Cyberjaya Campus",
-    fees: "Free",
-    description: "Join us for exciting workshops, coding competitions, tech talks, and networking with industry leaders."
-  },
-  {
-    id: 2,
-    title: "Career Talk: Future of Artificial Intelligence",
-    date: "2026-04-22",
-    time: "02:30 PM - 04:00 PM",
-    venue: "FCM Lecture Hall A",
-    fees: "Free",
-    description: "Guest speaker from Google sharing insights on AI trends and career opportunities."
-  },
-  {
-    id: 3,
-    title: "Sports Day 2026",
-    date: "2026-06-10",
-    time: "08:00 AM onwards",
-    venue: "MMU Sports Complex",
-    fees: "RM 10",
-    description: "Inter-faculty sports competition with fun games and prizes for winners."
-  },
-  {
-    id: 4,
-    title: "Blood Donation Drive",
-    date: "2026-04-30",
-    time: "10:00 AM - 04:00 PM",
-    venue: "Student Centre Lobby",
-    fees: "Free",
-    description: "Support a noble cause. All students and staff are encouraged to participate."
-  }
-];
+// ====================== EVENTS SYSTEM ======================
+let allEvents = [];
 
-// Function to display events
+function loadEvents() {
+  const saved = localStorage.getItem('mmuEvents');
+  if (saved) {
+    allEvents = JSON.parse(saved);
+  } else {
+    // Default events
+    allEvents = [
+      {
+        id: 1,
+        title: "MMU Tech Carnival 2026",
+        date: "2026-05-15",
+        time: "09:00 AM - 05:00 PM",
+        venue: "Grand Hall, Cyberjaya Campus",
+        fees: "Free",
+        description: "Join us for exciting workshops, coding competitions, tech talks...",
+        registered: false
+      },
+      // Add more default events if you want
+    ];
+    saveEvents();
+  }
+}
+
+function saveEvents() {
+  localStorage.setItem('mmuEvents', JSON.stringify(allEvents));
+}
+
+function showAddEventForm() {
+  document.getElementById('addEventModal').style.display = 'block';
+}
+
+function closeAddEventForm() {
+  document.getElementById('addEventModal').style.display = 'none';
+  document.getElementById('addEventForm').reset();
+}
+
+function addNewEvent() {
+  const title = document.getElementById('newEventTitle').value.trim();
+  const date = document.getElementById('newEventDate').value;
+  const time = document.getElementById('newEventTime').value.trim();
+  const venue = document.getElementById('newEventVenue').value.trim();
+  const fees = document.getElementById('newEventFees').value.trim();
+  const desc = document.getElementById('newEventDesc').value.trim();
+
+  if (!title || !date || !time || !venue || !desc) {
+    alert("Please fill all required fields!");
+    return;
+  }
+
+  allEvents.unshift({
+    id: Date.now(),
+    title,
+    date,
+    time,
+    venue,
+    fees: fees || "Free",
+    description: desc,
+    registered: false
+  });
+
+  saveEvents();
+  closeAddEventForm();
+  filterEvents();
+  alert("Event created successfully!");
+}
+
+function toggleRegister(id) {
+  const event = allEvents.find(e => e.id === id);
+  if (event) {
+    event.registered = !event.registered;
+    saveEvents();
+    filterEvents();
+  }
+}
+
 function displayEvents(events) {
   const container = document.getElementById('eventsList');
   container.innerHTML = '';
 
   if (events.length === 0) {
-    container.innerHTML = '<p class="text-center text-muted">No events found.</p>';
+    container.innerHTML = `<p class="text-center text-muted py-5">No events found.</p>`;
     return;
   }
 
   events.forEach(event => {
+    const isPast = new Date(event.date) < new Date();
     const card = document.createElement('div');
-    card.className = 'card mb-3';
+    card.className = 'col-md-6 col-lg-4';
     card.innerHTML = `
-      <div class="card-body">
-        <h5 class="card-title">${event.title}</h5>
-        <p class="card-text">
-          <strong>Date:</strong> ${event.date} &nbsp;&nbsp; 
-          <strong>Time:</strong> ${event.time}<br>
-          <strong>Venue:</strong> ${event.venue}<br>
-          <strong>Fees:</strong> ${event.fees}
-        </p>
-        <p class="card-text">${event.description}</p>
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">${event.title}</h5>
+          <p class="text-muted small">
+            📅 ${event.date} | 🕒 ${event.time}<br>
+            📍 ${event.venue}
+          </p>
+          <p class="card-text">${event.description.substring(0, 120)}...</p>
+          
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="badge ${isPast ? 'bg-secondary' : 'bg-success'}">${isPast ? 'Past' : 'Upcoming'}</span>
+            <button onclick="toggleRegister(${event.id})" class="btn ${event.registered ? 'btn-danger' : 'btn-primary'} btn-sm">
+              ${event.registered ? '✓ Registered' : 'RSVP'}
+            </button>
+          </div>
+        </div>
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-// Filter events based on search and date
 function filterEvents() {
   const searchTerm = document.getElementById('eventSearch').value.toLowerCase().trim();
   const selectedDate = document.getElementById('eventDateFilter').value;
 
-  let filteredEvents = eventsData;
+  let filtered = allEvents;
 
-  // Filter by search term
   if (searchTerm) {
-    filteredEvents = filteredEvents.filter(event => 
-      event.title.toLowerCase().includes(searchTerm) || 
-      event.description.toLowerCase().includes(searchTerm) ||
-      event.venue.toLowerCase().includes(searchTerm)
+    filtered = filtered.filter(e => 
+      e.title.toLowerCase().includes(searchTerm) || 
+      e.description.toLowerCase().includes(searchTerm) ||
+      e.venue.toLowerCase().includes(searchTerm)
     );
   }
 
-  // Filter by date
   if (selectedDate) {
-    filteredEvents = filteredEvents.filter(event => event.date === selectedDate);
+    filtered = filtered.filter(e => e.date === selectedDate);
   }
 
-  displayEvents(filteredEvents);
+  displayEvents(filtered);
 }
 
-// Show Event page and load events
-function showPage(pageId) {
-  if (currentUserRole === 'nonacademic') {
-    if (!['academic', 'maps', 'food'].includes(pageId)) {
-      alert("YOU ARE NOT ALLOWED TO LOOK AT THIS SECTION. THANK YOU.");
-      return;
-    }
-  }
-  if (currentUserRole === 'academic') {
-    if (['lostfound', 'feedback'].includes(pageId)) {
-      alert("YOU ARE NOT ALLOWED TO LOOK AT THIS SECTION. THANK YOU.");
-      return;
-    }
-  }
-
-  document.getElementById('dashboard').style.display = 'none';
-  document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
-  
-  const page = document.getElementById(pageId);
-  page.style.display = 'block';
-
-  // If it's the event page, load events
-  if (pageId === 'event') {
-    filterEvents();   // Show all events initially
-  }
+function switchEventTab(tab) {
+  // You can expand this later for "My Registrations" etc.
+  document.querySelectorAll('#eventTabs .nav-link').forEach(link => link.classList.remove('active'));
+  document.querySelectorAll('#eventTabs .nav-link')[tab].classList.add('active');
+  filterEvents();
 }
 
-// Campus Map Function
+// ====================== CAMPUS MAPS ======================
 function showCampusMap(campus) {
   const mapDisplay = document.getElementById('mapDisplay');
   const mapTitle = document.getElementById('mapTitle');
@@ -222,8 +336,7 @@ function showCampusMap(campus) {
   mapDisplay.scrollIntoView({ behavior: "smooth" });
 }
 
-// ---> Food Menu Function <---
-// Food Data
+// ====================== FOOD & CAFE ======================
 const foodData = {
   cyberjaya: [
     {
@@ -277,7 +390,6 @@ const foodData = {
   ]
 };
 
-// Show restaurants for selected campus
 function showCampusFood(campus) {
   const restaurantList = document.getElementById('restaurantList');
   restaurantList.innerHTML = '';
@@ -297,17 +409,14 @@ function showCampusFood(campus) {
     restaurantList.appendChild(col);
   });
 
-  // Hide menu display when switching campus
   document.getElementById('menuDisplay').style.display = 'none';
 }
 
-// Show menu for selected restaurant
 function showRestaurantMenu(campus, restaurantName) {
   const restaurant = foodData[campus].find(r => r.name === restaurantName);
   if (!restaurant) return;
 
   document.getElementById('restaurantName').textContent = restaurant.name;
-  
   const menuContainer = document.getElementById('menuItems');
   menuContainer.innerHTML = '';
 
@@ -329,14 +438,12 @@ function showRestaurantMenu(campus, restaurantName) {
   document.getElementById('restaurantList').style.display = 'none';
 }
 
-// Go back to restaurant list
 function backToRestaurants() {
   document.getElementById('menuDisplay').style.display = 'none';
   document.getElementById('restaurantList').style.display = 'flex';
 }
 
-// ---> Emergency Hotlines Function <---
-// Hotline Data
+// ====================== HOTLINES ======================
 const hotlineData = {
   cyberjaya: [
     { name: "MMU Security Hotline", number: "03-8312 5939" },
@@ -382,8 +489,7 @@ function showHotlines(campus) {
   display.style.display = 'block';
 }
 
-// ---> Transport Schedules Function <---
-// Transport Data
+// ====================== TRANSPORT ======================
 const transportData = {
   cyberjaya: [
     {
@@ -440,117 +546,10 @@ function showTransport(campus) {
   });
 }
 
-// ---> Lost & Found Function <---
-// Store items
-let lostItems = [];
 
-// Open form
-function openForm() {
-  document.getElementById('lostFormModal').style.display = 'block';
-}
-
-// Close form
-function closeForm() {
-  document.getElementById('lostFormModal').style.display = 'none';
-}
-
-// Post item
-function postItem() {
-  const date = document.getElementById('lfDate').value;
-  const time = document.getElementById('lfTime').value;
-  const venue = document.getElementById('lfVenue').value.trim();
-  const item = document.getElementById('lfItem').value.trim();
-  const desc = document.getElementById('lfDesc').value.trim();
-
-  if (!date || !time || !venue || !item || !desc) {
-    alert("Please fill all fields!");
-    return;
-  }
-
-  const newItem = {
-    date,
-    time,
-    venue,
-    item,
-    desc
-  };
-
-  lostItems.push(newItem);
-  closeForm();
-  displayItems(lostItems);
-
-  // reset form
-  document.getElementById('lfDate').value = '';
-  document.getElementById('lfTime').value = '';
-  document.getElementById('lfVenue').value = '';
-  document.getElementById('lfItem').value = '';
-  document.getElementById('lfDesc').value = '';
-}
-
-// Display items
-function displayItems(items) {
-  const container = document.getElementById('lostFoundList');
-  container.innerHTML = '';
-
-  if (items.length === 0) {
-    container.innerHTML = '<p class="text-muted">No items posted yet.</p>';
-    return;
-  }
-
-  items.forEach(i => {
-    const col = document.createElement('div');
-    col.className = 'col-md-6';
-
-    col.innerHTML = `
-      <div class="card p-3 shadow">
-        <h5>${i.item}</h5>
-        <p><strong>Date:</strong> ${i.date}</p>
-        <p><strong>Time:</strong> ${i.time}</p>
-        <p><strong>Venue:</strong> ${i.venue}</p>
-        <p>${i.desc}</p>
-      </div>
-    `;
-
-    container.appendChild(col);
-  });
-}
-
-// Search filter
-function filterItems() {
-  const keyword = document.getElementById('searchInput').value.toLowerCase();
-
-  const filtered = lostItems.filter(i =>
-    i.item.toLowerCase().includes(keyword) ||
-    i.venue.toLowerCase().includes(keyword) ||
-    i.desc.toLowerCase().includes(keyword)
-  );
-
-  displayItems(filtered);
-}
-
-// Date filter
-function filterByDate(type) {
-  const today = new Date();
-
-  const filtered = lostItems.filter(i => {
-    const itemDate = new Date(i.date);
-    const diffDays = (today - itemDate) / (1000 * 60 * 60 * 24);
-
-    if (type === 'today') return diffDays < 1;
-    if (type === 'yesterday') return diffDays >= 1 && diffDays < 2;
-    if (type === 'week') return diffDays <= 7;
-
-    return true;
-  });
-
-  displayItems(filtered);
-}
-
-// ---> Lost & Found Function <---
-// Storage
+// ====================== LOST & FOUND ======================
 let lostItemsData = [];
 
-// Open/Close Modal
 function openForm() {
   document.getElementById('lostFormModal').style.display = 'block';
 }
@@ -559,7 +558,6 @@ function closeForm() {
   document.getElementById('lostFormModal').style.display = 'none';
 }
 
-// Add Item
 function addItem() {
   const date = document.getElementById('lfDate').value;
   const time = document.getElementById('lfTime').value;
@@ -578,20 +576,18 @@ function addItem() {
   loadItems();
 }
 
-// Display Items
 function loadItems(data = lostItemsData) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
 
   if (data.length === 0) {
-    container.innerHTML = `<p class="text-muted">No items posted.</p>`;
+    container.innerHTML = `<p class="text-muted">No items posted yet.</p>`;
     return;
   }
 
   data.forEach(entry => {
     const col = document.createElement('div');
     col.className = "col-md-6";
-
     col.innerHTML = `
       <div class="card shadow">
         <div class="card-body">
@@ -602,28 +598,22 @@ function loadItems(data = lostItemsData) {
         </div>
       </div>
     `;
-
     container.appendChild(col);
   });
 }
 
-// Search Filter
 function filterLostItems() {
   const keyword = document.getElementById('searchInput').value.toLowerCase();
-
   const filtered = lostItemsData.filter(item =>
     item.item.toLowerCase().includes(keyword) ||
     item.desc.toLowerCase().includes(keyword) ||
     item.venue.toLowerCase().includes(keyword)
   );
-
   loadItems(filtered);
 }
 
-// Date Filter
 function filterByDate(type) {
   const today = new Date();
-
   const filtered = lostItemsData.filter(entry => {
     const itemDate = new Date(entry.date);
     const diffDays = (today - itemDate) / (1000 * 60 * 60 * 24);
@@ -631,9 +621,166 @@ function filterByDate(type) {
     if (type === 'today') return diffDays < 1;
     if (type === 'yesterday') return diffDays >= 1 && diffDays < 2;
     if (type === 'week') return diffDays <= 7;
-
     return true;
   });
-
   loadItems(filtered);
+}
+
+// ====================== FEEDBACK SYSTEM ======================
+let userFeedbacks = [];
+let feedbackFormInitialized = false;
+
+function loadUserFeedbacks() {
+  const saved = localStorage.getItem('mmuFeedbacks');
+  if (saved) userFeedbacks = JSON.parse(saved);
+}
+
+function saveFeedbacks() {
+  localStorage.setItem('mmuFeedbacks', JSON.stringify(userFeedbacks));
+}
+
+function deleteFeedback(id) {
+  if (confirm("Delete this feedback?")) {
+    userFeedbacks = userFeedbacks.filter(fb => fb.id !== id);
+    saveFeedbacks();
+    displayFeedbacks();
+  }
+}
+
+function filterFeedbacks() {
+  const keyword = document.getElementById('feedbackSearch').value.toLowerCase().trim();
+  displayFeedbacks(keyword);
+}
+
+function displayFeedbacks(searchTerm = '') {
+  const container = document.getElementById('feedbackList');
+  container.innerHTML = '';
+
+  let filteredFeedbacks = userFeedbacks;
+
+  if (searchTerm) {
+    filteredFeedbacks = userFeedbacks.filter(fb =>
+      fb.subject.toLowerCase().includes(searchTerm) ||
+      fb.message.toLowerCase().includes(searchTerm) ||
+      fb.category.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  if (filteredFeedbacks.length === 0) {
+    container.innerHTML = `<div class="col-12"><p class="text-muted text-center py-5">No feedbacks found.</p></div>`;
+    return;
+  }
+
+  const isAdmin = currentUserRole === 'academic';
+
+  filteredFeedbacks.forEach(fb => {
+    const card = document.createElement('div');
+    card.className = 'col-md-6';
+    card.innerHTML = `
+      <div class="card h-100 shadow-sm position-relative">
+        ${isAdmin ? `
+        <button onclick="deleteFeedback(${fb.id})" 
+                class="btn btn-outline-danger btn-sm position-absolute bottom-0 end-0 m-3"
+                style="z-index: 10;">
+          <i class="bi bi-trash"></i> Delete
+        </button>` : ''}
+
+        <div class="card-body ${isAdmin ? 'pb-5' : ''}">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0">${fb.subject}</h6>
+            <span class="badge bg-${fb.anonymous ? 'secondary' : 'primary'}">
+              ${fb.anonymous ? 'Anonymous' : 'Signed'}
+            </span>
+          </div>
+          
+          <p class="text-warning mb-1 fs-5">${'★'.repeat(fb.rating)}</p>
+          <p class="text-muted small mb-2">${fb.category} • ${fb.date}</p>
+          <p class="card-text">${fb.message}</p>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Star Rating Setup
+function setupStarRating() {
+  const stars = document.querySelectorAll('#starRating span');
+  const ratingInput = document.getElementById('fbRating');
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const value = parseInt(star.dataset.value);
+      ratingInput.value = value;
+      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= value));
+    });
+  });
+}
+
+// Submit Handler
+function handleFeedbackSubmit(e) {
+  e.preventDefault();
+  // ... (same as before - no change needed) ...
+  const category = document.getElementById('fbCategory').value;
+  const rating = parseInt(document.getElementById('fbRating').value);
+  const subject = document.getElementById('fbSubject').value.trim();
+  const message = document.getElementById('fbMessage').value.trim();
+  const anonymous = document.getElementById('fbAnonymous').checked;
+
+  if (!category || rating === 0 || !subject || !message) {
+    alert("Please fill all required fields and give a rating.");
+    return;
+  }
+
+  const newFeedback = {
+    id: Date.now(),
+    category,
+    rating,
+    subject,
+    message,
+    anonymous,
+    date: new Date().toLocaleDateString('en-MY')
+  };
+
+  userFeedbacks.unshift(newFeedback);
+  saveFeedbacks();
+
+  const form = document.getElementById('feedbackForm');
+  const successDiv = document.createElement('div');
+  successDiv.className = 'alert alert-success mt-3';
+  successDiv.textContent = "Thank you! Your feedback has been submitted.";
+  form.appendChild(successDiv);
+
+  setTimeout(() => { 
+    form.reset(); 
+    document.getElementById('fbRating').value = '0';
+    document.querySelectorAll('#starRating span').forEach(s => s.classList.remove('active'));
+    successDiv.remove();
+    displayFeedbacks(); 
+  }, 1800);
+}
+
+function setupFeedbackForm() {
+  if (feedbackFormInitialized) return;
+  const form = document.getElementById('feedbackForm');
+  if (form) {
+    form.addEventListener('submit', handleFeedbackSubmit);
+    feedbackFormInitialized = true;
+  }
+}
+
+function initFeedback() {
+  loadUserFeedbacks();
+  setupStarRating();
+  setupFeedbackForm();
+
+  // Set title based on role
+  const titleEl = document.getElementById('feedbackListTitle');
+  if (currentUserRole === 'academic') {
+    titleEl.textContent = "All Student Feedbacks (Admin View)";
+  } else {
+    titleEl.textContent = "My Previous Feedbacks";
+  }
+
+  displayFeedbacks();
 }
