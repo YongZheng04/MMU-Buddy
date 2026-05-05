@@ -80,3 +80,29 @@ body {
 .back-btn {
   margin-bottom: 20px;
 }
+
+/* Star Rating */
+.star-rating {
+  font-size: 2rem;
+  color: #ddd;
+  cursor: pointer;
+  user-select: none;
+}
+
+.star-rating span {
+  transition: color 0.2s;
+}
+
+.star-rating span:hover,
+.star-rating span.active {
+  color: #ffc107;
+}
+
+.success-message {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
