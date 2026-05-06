@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -92,18 +96,12 @@
 <div id="event" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Campus Events & Activities</h2>
-    <button class="btn btn-success" onclick="showAddEventForm()">
-      <i class="bi bi-plus-circle"></i> Create Event
-    </button>
-  </div>
+  <h2 class="mb-4">Campus Events & Activities</h2>
 
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-4" id="eventTabs">
     <li class="nav-item"><a class="nav-link active" onclick="switchEventTab(0)">Upcoming</a></li>
     <li class="nav-item"><a class="nav-link" onclick="switchEventTab(1)">Past</a></li>
-    <li class="nav-item"><a class="nav-link" onclick="switchEventTab(2)">My Registrations</a></li>
   </ul>
 
   <!-- Search & Filter -->
@@ -118,49 +116,29 @@
 
   <!-- Events List -->
   <div id="eventsList" class="row g-4"></div>
-</div>
 
-<!-- Add Event Modal -->
-<div id="addEventModal" class="modal" style="display:none;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Create New Event</h5>
-        <button type="button" class="btn-close" onclick="closeAddEventForm()"></button>
-      </div>
-      <div class="modal-body">
-        <form id="addEventForm">
-          <div class="mb-3">
-            <label class="form-label">Event Title</label>
-            <input type="text" id="newEventTitle" class="form-control" required>
+  <!-- Event Detail Modal -->
+  <div id="eventDetailModal" class="modal" style="display: none;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEventTitle"></h5>
+          <button type="button" class="btn-close" onclick="closeEventModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p id="modalEventInfo" class="text-muted"></p>
+          <p id="modalEventDesc"></p>
+          
+          <hr>
+          <h6>Registered Participants (<span id="modalRsvpCount">0</span>)</h6>
+          <div id="modalRsvpList" class="mt-3">
+            <!-- Filled by JavaScript -->
           </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Date</label>
-              <input type="date" id="newEventDate" class="form-control" required>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Time</label>
-              <input type="text" id="newEventTime" class="form-control" placeholder="e.g. 09:00 AM - 05:00 PM" required>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Venue</label>
-            <input type="text" id="newEventVenue" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Fees</label>
-            <input type="text" id="newEventFees" class="form-control" value="Free">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea id="newEventDesc" class="form-control" rows="4" required></textarea>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAddEventForm()">Cancel</button>
-        <button class="btn btn-primary" onclick="addNewEvent()">Create Event</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeEventModal()">Close</button>
+          <button id="modalRsvpBtn" class="btn btn-primary" onclick="">RSVP Now</button>
+        </div>
       </div>
     </div>
   </div>
@@ -248,37 +226,42 @@
 <div id="food" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
   
-  <h2 class="mb-4">Food & Cafe Menu</h2>
-  <p class="lead mb-4">Select your campus to view available restaurants and menus:</p>
+  <h2 class="mb-3">Food & Cafe</h2>
+  <p class="text-muted mb-4">Discover delicious options near you</p>
 
-  <!-- Campus Selection -->
-  <div class="row g-4 mb-5">
-    <div class="col-md-6">
-      <div class="card h-100 text-center" onclick="showCampusFood('cyberjaya')" style="cursor: pointer;">
-        <div class="card-body">
-          <h5 class="card-title">Cyberjaya Campus</h5>
-          <p class="card-text">Main campus with many food options</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card h-100 text-center" onclick="showCampusFood('melaka')" style="cursor: pointer;">
-        <div class="card-body">
-          <h5 class="card-title">Melaka Campus</h5>
-          <p class="card-text">Historic campus with local favorites</p>
-        </div>
-      </div>
-    </div>
+  <!-- Campus Selector (Modern Tabs) -->
+  <div class="d-flex mb-4 bg-light rounded-3 p-1" style="width: fit-content;">
+    <button onclick="switchCampus('cyberjaya')" 
+            id="btn-cyberjaya"
+            class="btn btn-campus active px-4 py-2">
+      Cyberjaya Campus
+    </button>
+    <button onclick="switchCampus('melaka')" 
+            id="btn-melaka"
+            class="btn btn-campus px-4 py-2">
+      Melaka Campus
+    </button>
   </div>
 
-  <!-- Restaurant List -->
-  <div id="restaurantList" class="row g-4" style="display: none;"></div>
+  <!-- Search Bar -->
+  <div class="mb-4">
+    <input type="text" id="foodSearch" 
+           class="form-control form-control-lg rounded-4" 
+           placeholder="Search restaurants or food..." 
+           onkeyup="filterFood()">
+  </div>
 
-  <!-- Menu Display Area -->
-  <div id="menuDisplay" class="mt-5" style="display: none;">
-    <button class="btn btn-secondary mb-3" onclick="backToRestaurants()">← Back to Restaurants</button>
-    <h4 id="restaurantName" class="mb-4"></h4>
-    <div id="menuItems" class="row"></div>
+  <!-- Restaurant Grid -->
+  <div id="restaurantList" class="row g-4"></div>
+
+  <!-- Menu Display -->
+  <div id="menuDisplay" class="mt-4" style="display: none;">
+    <button class="btn btn-outline-primary mb-3" onclick="backToRestaurants()">
+      ← Back to Restaurants
+    </button>
+    
+    <h4 id="restaurantName" class="mb-4 text-primary"></h4>
+    <div id="menuItems" class="row g-3"></div>
   </div>
 </div>
 
