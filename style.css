@@ -29,7 +29,7 @@ body {
 
 /* Login Page */
 .login-container {
-  max-width: 420px;
+  max-width: 550px;
   margin: 60px auto 30px;
   background: rgba(255, 255, 255, 0.95);
   padding: 30px 25px;
