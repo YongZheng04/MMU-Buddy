@@ -81,6 +81,41 @@ body {
   margin-bottom: 20px;
 }
 
+/* ====== Food Page =====  */
+/* Food Page - App-like Styling */
+.btn-campus {
+  border: none;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.btn-campus.active {
+  background: #0d6efd;
+  color: white;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.card.food-card {
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.card.food-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+.menu-item-card {
+  transition: all 0.2s;
+}
+
+.menu-item-card:hover {
+  transform: scale(1.03);
+}
+
+/* ===== Feedback Page ===== */
 /* Star Rating */
 .star-rating {
   font-size: 2rem;
