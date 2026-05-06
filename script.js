@@ -1,7 +1,24 @@
-// Disable right-click
+// ====================== FIREBASE SETUP ======================
+const firebaseConfig = {
+  apiKey: "AIzaSyAQVYCmkYvyjiztXWB3l9SWl9vre_zBHTE",
+  authDomain: "mmu-buddy.firebaseapp.com",
+  projectId: "mmu-buddy",
+  storageBucket: "mmu-buddy.firebasestorage.app",
+  messagingSenderId: "42214932730",
+  appId: "1:42214932730:web:2f05a9ea112e38fdeec943",
+  measurementId: "G-01HB8GT0WZ"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+console.log("✅ Firebase Connected Successfully!");
+
+// ====================== ANTI-DEVTOOLS ======================
 document.addEventListener('contextmenu', e => e.preventDefault());
 
-// Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
 document.addEventListener('keydown', function(e) {
   if (e.key === "F12" || 
      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C")) ||
@@ -14,7 +31,7 @@ document.addEventListener('keydown', function(e) {
 // ====================== GLOBAL VARIABLES ======================
 let currentUserRole = '';
 
-// ====================== LOGIN & ROLE MANAGEMENT ======================
+// ====================== SELECT ROLE ======================
 function selectRole(role) {
   currentUserRole = role;
   document.getElementById('loginPage').style.display = 'none';
@@ -28,91 +45,127 @@ function selectRole(role) {
   }
 }
 
-// ====================== USER DATABASE ======================
-const usersDatabase = {
-  students: [
-    { id: "1211108445", name: "YAP YONG ZHENG"},
-  ],
-  academic: [
-    { id: "ST0001", name: "YAP YONG ZHENG"},
-  ]
-};
-
-// ====================== LOGIN FUNCTIONS ======================
-function loginAs(role) {
+// ====================== LOGIN FUNCTIONS (Firestore Version) ======================
+async function loginAs(role) {
   let name = "";
   let id = "";
-  let welcomeText = "";
 
   if (role === 'student') {
     name = document.getElementById('studentName').value.trim();
     id = document.getElementById('studentID').value.trim();
 
-    const student = usersDatabase.students.find(s => 
-      s.id === id && s.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (!student) {
-      alert("❌ Invalid Student Name or ID. Please try again.");
+    if (!name || !id) {
+      alert("Please enter both Name and Student ID");
       return;
     }
 
-    welcomeText = `Welcome, ${student.name}`;
-    currentUserRole = 'student';
-    // You can save more user info if needed
-    window.currentUser = student;
+    try {
+      const querySnapshot = await db.collection('users')
+        .where('role', '==', 'student')
+        .where('id', '==', id)
+        .get();
+
+      if (querySnapshot.empty) {
+        alert("❌ Invalid Student ID.");
+        return;
+      }
+
+      const userDoc = querySnapshot.docs[0].data();
+      
+      if (userDoc.name.toLowerCase() !== name.toLowerCase()) {
+        alert("❌ Wrong Name for this Student ID.");
+        return;
+      }
+
+      currentUserRole = 'student';
+      document.getElementById('userWelcome').innerText = `Welcome, ${userDoc.name}`;
+
+    } catch (error) {
+      console.error("Login Error:", error);
+      alert("❌ Connection error. Please check your internet and try again.");
+      return;
+    }
 
   } 
   else if (role === 'academic') {
     name = document.getElementById('academicName').value.trim();
     id = document.getElementById('academicID').value.trim();
 
-    const staff = usersDatabase.academic.find(s => 
-      s.id === id && s.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (!staff) {
-      alert("❌ Invalid Staff Name or Staff ID.");
+    if (!name || !id) {
+      alert("Please enter both Name and Staff ID");
       return;
     }
 
-    welcomeText = `Welcome, ${staff.name}`;
-    currentUserRole = 'academic';
-    window.currentUser = staff;
+    try {
+      const querySnapshot = await db.collection('users')
+        .where('role', '==', 'academic')
+        .where('id', '==', id)
+        .get();
+
+      if (querySnapshot.empty) {
+        alert("❌ Invalid Staff ID.");
+        return;
+      }
+
+      const userDoc = querySnapshot.docs[0].data();
+      
+      if (userDoc.name.toLowerCase() !== name.toLowerCase()) {
+        alert("❌ Wrong Name for this Staff ID.");
+        return;
+      }
+
+      currentUserRole = 'academic';
+      document.getElementById('userWelcome').innerText = `Welcome, ${userDoc.name}`;
+
+    } catch (error) {
+      console.error("Login Error:", error);
+      alert("❌ Connection error. Please try again.");
+      return;
+    }
   } 
   else if (role === 'nonacademic') {
-    welcomeText = "Welcome, Visitor";
     currentUserRole = 'nonacademic';
+    document.getElementById('userWelcome').innerText = "Welcome, Visitor";
   }
 
-  // Update UI
-  document.getElementById('userWelcome').innerText = welcomeText;
+  // Success - Show Dashboard
   document.getElementById('logoutBtn').style.display = 
     (role === 'student' || role === 'academic') ? 'block' : 'none';
 
-  // Hide login pages
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('studentLogin').style.display = 'none';
   document.getElementById('academicLogin').style.display = 'none';
 
   controlAccess(currentUserRole);
   document.getElementById('dashboard').style.display = 'block';
-
-  // Add this at the end of loginAs() function
-  if (window.currentUser) {
-  console.log("Logged in user:", window.currentUser);
-}
 }
 
-function backToLogin() {
-  document.getElementById('studentLogin').style.display = 'none';
-  document.getElementById('academicLogin').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'block';
-}
-
+// ====================== LOGOUT FUNCTION ======================
 function logout() {
   if (confirm("Are you sure you want to log out?")) {
-    location.reload();
+    // Clear all states
+    currentUserRole = '';
+    
+    // Hide dashboard and all pages
+    document.getElementById('dashboard').style.display = 'none';
+    document.querySelectorAll('.page-content').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Show login page again
+    document.getElementById('loginPage').style.display = 'block';
+    
+    // Clear input fields
+    document.getElementById('studentName').value = '';
+    document.getElementById('studentID').value = '';
+    document.getElementById('academicName').value = '';
+    document.getElementById('academicID').value = '';
+
+    // Reset welcome text
+    document.getElementById('userWelcome').innerText = "Welcome to MMU Buddy";
+    document.getElementById('logoutBtn').style.display = 'none';
+
+    console.log("✅ Logged out successfully");
   }
 }
 
@@ -166,6 +219,9 @@ if (pageId === 'event') {
     loadEvents();
     filterEvents();
   }
+  if (pageId === 'food') {
+    loadFoodMenus();
+  }
   if (pageId === 'feedback') {
     initFeedback();
   }
@@ -176,84 +232,106 @@ function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
 }
 
-// ====================== EVENTS SYSTEM ======================
+// ====================== EVENTS SYSTEM (With Detail Modal) ======================
 let allEvents = [];
+let currentSelectedEventId = null;
 
-function loadEvents() {
-  const saved = localStorage.getItem('mmuEvents');
-  if (saved) {
-    allEvents = JSON.parse(saved);
-  } else {
-    // Default events
-    allEvents = [
-      {
-        id: 1,
-        title: "MMU Tech Carnival 2026",
-        date: "2026-05-15",
-        time: "09:00 AM - 05:00 PM",
-        venue: "Grand Hall, Cyberjaya Campus",
-        fees: "Free",
-        description: "Join us for exciting workshops, coding competitions, tech talks...",
-        registered: false
-      },
-      // Add more default events if you want
-    ];
-    saveEvents();
+// Load Events
+async function loadEvents() {
+  try {
+    const snapshot = await db.collection('events')
+      .orderBy('date', 'asc')
+      .get();
+
+    allEvents = [];
+    snapshot.forEach(doc => {
+      allEvents.push({ id: doc.id, ...doc.data() });
+    });
+
+    filterEvents();
+  } catch (error) {
+    console.error("Error loading events:", error);
   }
 }
 
-function saveEvents() {
-  localStorage.setItem('mmuEvents', JSON.stringify(allEvents));
+// Open Event Detail Modal
+function showEventDetail(eventId) {
+  const event = allEvents.find(e => e.id === eventId);
+  if (!event) return;
+
+  currentSelectedEventId = eventId;
+
+  document.getElementById('modalEventTitle').textContent = event.title;
+  document.getElementById('modalEventDesc').textContent = event.description || "No description available.";
+  
+  const info = `📅 ${event.date} | 🕒 ${event.time}<br>📍 ${event.venue}`;
+  document.getElementById('modalEventInfo').innerHTML = info;
+
+  const rsvpList = event.rsvpList || [];
+  document.getElementById('modalRsvpCount').textContent = rsvpList.length;
+
+  // Show registered list
+  const listContainer = document.getElementById('modalRsvpList');
+  if (rsvpList.length === 0) {
+    listContainer.innerHTML = `<p class="text-muted">No one has registered yet.</p>`;
+  } else {
+    listContainer.innerHTML = `<ul class="list-group">${rsvpList.map(name => 
+      `<li class="list-group-item">${name}</li>`).join('')}</ul>`;
+  }
+
+  // RSVP Button
+  const userName = document.getElementById('userWelcome').innerText.replace('Welcome, ', '').trim();
+  const isRegistered = rsvpList.includes(userName);
+  const rsvpBtn = document.getElementById('modalRsvpBtn');
+
+  if (new Date(event.date) < new Date()) {
+    rsvpBtn.style.display = 'none'; // Past event
+  } else {
+    rsvpBtn.style.display = 'block';
+    rsvpBtn.textContent = isRegistered ? 'Cancel Registration' : 'RSVP Now';
+    rsvpBtn.className = `btn ${isRegistered ? 'btn-danger' : 'btn-primary'}`;
+    rsvpBtn.onclick = () => toggleRSVP(eventId);
+  }
+
+  document.getElementById('eventDetailModal').style.display = 'block';
 }
 
-function showAddEventForm() {
-  document.getElementById('addEventModal').style.display = 'block';
+function closeEventModal() {
+  document.getElementById('eventDetailModal').style.display = 'none';
 }
 
-function closeAddEventForm() {
-  document.getElementById('addEventModal').style.display = 'none';
-  document.getElementById('addEventForm').reset();
-}
-
-function addNewEvent() {
-  const title = document.getElementById('newEventTitle').value.trim();
-  const date = document.getElementById('newEventDate').value;
-  const time = document.getElementById('newEventTime').value.trim();
-  const venue = document.getElementById('newEventVenue').value.trim();
-  const fees = document.getElementById('newEventFees').value.trim();
-  const desc = document.getElementById('newEventDesc').value.trim();
-
-  if (!title || !date || !time || !venue || !desc) {
-    alert("Please fill all required fields!");
+// Toggle RSVP
+async function toggleRSVP(eventId) {
+  const userName = document.getElementById('userWelcome').innerText.replace('Welcome, ', '').trim();
+  if (!userName || userName === "to MMU Buddy") {
+    alert("Please login first.");
     return;
   }
 
-  allEvents.unshift({
-    id: Date.now(),
-    title,
-    date,
-    time,
-    venue,
-    fees: fees || "Free",
-    description: desc,
-    registered: false
-  });
+  try {
+    const eventRef = db.collection('events').doc(eventId);
+    const eventDoc = await eventRef.get();
+    let rsvpList = eventDoc.data().rsvpList || [];
 
-  saveEvents();
-  closeAddEventForm();
-  filterEvents();
-  alert("Event created successfully!");
-}
+    if (rsvpList.includes(userName)) {
+      rsvpList = rsvpList.filter(name => name !== userName);
+    } else {
+      rsvpList.push(userName);
+    }
 
-function toggleRegister(id) {
-  const event = allEvents.find(e => e.id === id);
-  if (event) {
-    event.registered = !event.registered;
-    saveEvents();
-    filterEvents();
+    await eventRef.update({ rsvpList, rsvpCount: rsvpList.length });
+
+    alert("Success!");
+    closeEventModal();
+    await loadEvents();   // Refresh main list
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to update RSVP.");
   }
 }
 
+// Display Events (Clickable Cards)
 function displayEvents(events) {
   const container = document.getElementById('eventsList');
   container.innerHTML = '';
@@ -265,23 +343,24 @@ function displayEvents(events) {
 
   events.forEach(event => {
     const isPast = new Date(event.date) < new Date();
+    const rsvpCount = event.rsvpCount || (event.rsvpList ? event.rsvpList.length : 0);
+
     const card = document.createElement('div');
     card.className = 'col-md-6 col-lg-4';
     card.innerHTML = `
-      <div class="card h-100 shadow-sm">
+      <div class="card h-100 shadow-sm" style="cursor: pointer;" onclick="showEventDetail('${event.id}')">
         <div class="card-body">
           <h5 class="card-title">${event.title}</h5>
           <p class="text-muted small">
-            📅 ${event.date} | 🕒 ${event.time}<br>
+            📅 ${event.date}<br>
+            🕒 ${event.time}<br>
             📍 ${event.venue}
           </p>
-          <p class="card-text">${event.description.substring(0, 120)}...</p>
+          <p class="card-text">${event.description ? event.description.substring(0, 100) + '...' : ''}</p>
           
-          <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="mt-3">
             <span class="badge ${isPast ? 'bg-secondary' : 'bg-success'}">${isPast ? 'Past' : 'Upcoming'}</span>
-            <button onclick="toggleRegister(${event.id})" class="btn ${event.registered ? 'btn-danger' : 'btn-primary'} btn-sm">
-              ${event.registered ? '✓ Registered' : 'RSVP'}
-            </button>
+            <small class="text-muted ms-2">${rsvpCount} registered</small>
           </div>
         </div>
       </div>
@@ -298,9 +377,9 @@ function filterEvents() {
 
   if (searchTerm) {
     filtered = filtered.filter(e => 
-      e.title.toLowerCase().includes(searchTerm) || 
-      e.description.toLowerCase().includes(searchTerm) ||
-      e.venue.toLowerCase().includes(searchTerm)
+      e.title?.toLowerCase().includes(searchTerm) || 
+      e.description?.toLowerCase().includes(searchTerm) ||
+      e.venue?.toLowerCase().includes(searchTerm)
     );
   }
 
@@ -312,7 +391,6 @@ function filterEvents() {
 }
 
 function switchEventTab(tab) {
-  // You can expand this later for "My Registrations" etc.
   document.querySelectorAll('#eventTabs .nav-link').forEach(link => link.classList.remove('active'));
   document.querySelectorAll('#eventTabs .nav-link')[tab].classList.add('active');
   filterEvents();
@@ -336,111 +414,128 @@ function showCampusMap(campus) {
   mapDisplay.scrollIntoView({ behavior: "smooth" });
 }
 
-// ====================== FOOD & CAFE ======================
-const foodData = {
-  cyberjaya: [
-    {
-      name: "Old Town White Coffee",
-      items: [
-        { item: "Nasi Lemak Ayam", price: "RM 8.50" },
-        { item: "Roti Canai Set", price: "RM 6.50" },
-        { item: "Kopi Tarik", price: "RM 4.50" }
-      ]
-    },
-    {
-      name: "Starbucks",
-      items: [
-        { item: "Caramel Macchiato", price: "RM 14.90" },
-        { item: "Blueberry Muffin", price: "RM 9.50" },
-        { item: "Chicken Sandwich", price: "RM 12.90" }
-      ]
-    },
-    {
-      name: "Mamak Stall",
-      items: [
-        { item: "Roti Canai + Teh Tarik", price: "RM 5.00" },
-        { item: "Maggi Goreng", price: "RM 6.50" },
-        { item: "Roti Boom", price: "RM 4.50" }
-      ]
-    }
-  ],
-  melaka: [
-    {
-      name: "Kedai Kopi Chung Wah",
-      items: [
-        { item: "Chicken Rice", price: "RM 7.50" },
-        { item: "Wantan Mee", price: "RM 6.80" },
-        { item: "Kaya Butter Toast", price: "RM 3.50" }
-      ]
-    },
-    {
-      name: "Satay Celup Stall",
-      items: [
-        { item: "Satay Celup Set (10 sticks)", price: "RM 12.00" },
-        { item: "Cendol", price: "RM 4.50" }
-      ]
-    },
-    {
-      name: "Pizza Hut",
-      items: [
-        { item: "Personal Pan Pizza", price: "RM 15.90" },
-        { item: "Garlic Bread", price: "RM 6.90" }
-      ]
-    }
-  ]
-};
+// ====================== FOOD & CAFE (Modern App Design) ======================
+let allFoodMenus = [];
+let currentCampus = 'cyberjaya';
 
-function showCampusFood(campus) {
-  const restaurantList = document.getElementById('restaurantList');
-  restaurantList.innerHTML = '';
-  restaurantList.style.display = 'flex';
+async function loadFoodMenus() {
+  try {
+    const snapshot = await db.collection('food_menus').get();
+    allFoodMenus = [];
+    snapshot.forEach(doc => {
+      allFoodMenus.push({ id: doc.id, ...doc.data() });
+    });
+  } catch (error) {
+    console.error("Error loading food:", error);
+  }
+}
 
-  foodData[campus].forEach(restaurant => {
+async function switchCampus(campus) {
+  currentCampus = campus;
+  
+  // Update active button
+  document.querySelectorAll('.btn-campus').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `btn-${campus}`);
+  });
+
+  await showCampusFood(campus);
+}
+
+async function showCampusFood(campus) {
+  await loadFoodMenus();
+
+  const container = document.getElementById('restaurantList');
+  container.innerHTML = '';
+
+  const filtered = allFoodMenus.filter(r => r.campus === campus);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="text-center text-muted py-5">No restaurants found.</p>`;
+    return;
+  }
+
+  filtered.forEach(restaurant => {
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4';
     col.innerHTML = `
-      <div class="card h-100 text-center" onclick="showRestaurantMenu('${campus}', '${restaurant.name}')" style="cursor: pointer;">
+      <div class="card food-card h-100" onclick="showRestaurantMenu('${restaurant.id}')">
         <div class="card-body">
           <h5 class="card-title">${restaurant.name}</h5>
-          <p class="card-text">Tap to view menu</p>
+          <p class="text-muted small">${restaurant.category || 'Restaurant'}</p>
+          <hr>
+          <small class="text-success">${restaurant.items ? restaurant.items.length : 0} items</small>
         </div>
       </div>
     `;
-    restaurantList.appendChild(col);
+    container.appendChild(col);
   });
-
-  document.getElementById('menuDisplay').style.display = 'none';
 }
 
-function showRestaurantMenu(campus, restaurantName) {
-  const restaurant = foodData[campus].find(r => r.name === restaurantName);
+function showRestaurantMenu(restaurantId) {
+  const restaurant = allFoodMenus.find(r => r.id === restaurantId);
   if (!restaurant) return;
 
   document.getElementById('restaurantName').textContent = restaurant.name;
-  const menuContainer = document.getElementById('menuItems');
-  menuContainer.innerHTML = '';
 
-  restaurant.items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'col-md-6 mb-3';
-    div.innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <h6>${item.item}</h6>
-          <p class="text-success fw-bold">${item.price}</p>
+  const container = document.getElementById('menuItems');
+  container.innerHTML = '';
+
+  if (restaurant.items && restaurant.items.length > 0) {
+    restaurant.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'col-12 col-sm-6';
+      div.innerHTML = `
+        <div class="card menu-item-card">
+          <div class="card-body">
+            <h6>${item.item}</h6>
+            <p class="text-success fw-bold fs-5 mb-0">${item.price}</p>
+          </div>
         </div>
-      </div>
-    `;
-    menuContainer.appendChild(div);
-  });
+      `;
+      container.appendChild(div);
+    });
+  }
 
-  document.getElementById('menuDisplay').style.display = 'block';
   document.getElementById('restaurantList').style.display = 'none';
+  document.getElementById('menuDisplay').style.display = 'block';
 }
 
 function backToRestaurants() {
   document.getElementById('menuDisplay').style.display = 'none';
   document.getElementById('restaurantList').style.display = 'flex';
+}
+
+function filterFood() {
+  const keyword = document.getElementById('foodSearch').value.toLowerCase().trim();
+  const container = document.getElementById('restaurantList');
+  container.innerHTML = '';
+
+  const filtered = allFoodMenus.filter(r => 
+    r.campus === currentCampus && 
+    (r.name.toLowerCase().includes(keyword) || 
+     (r.items && r.items.some(item => item.item.toLowerCase().includes(keyword))))
+  );
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="text-center text-muted py-5">No matching restaurants found.</p>`;
+    return;
+  }
+
+  // Reuse the same card creation logic...
+  filtered.forEach(restaurant => {
+    // (same card code as in showCampusFood)
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4';
+    col.innerHTML = `
+      <div class="card food-card h-100" onclick="showRestaurantMenu('${restaurant.id}')">
+        <div class="card-body">
+          <h5 class="card-title">${restaurant.name}</h5>
+          <p class="text-muted small">${restaurant.category || 'Restaurant'}</p>
+        </div>
+      </div>
+    `;
+    container.appendChild(col);
+  });
 }
 
 // ====================== HOTLINES ======================
