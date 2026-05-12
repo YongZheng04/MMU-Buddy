@@ -138,6 +138,9 @@ async function loginAs(role) {
 
   controlAccess(currentUserRole);
   document.getElementById('dashboard').style.display = 'block';
+
+  // After showing dashboard
+  setTimeout(loadAnnouncements, 300);
 }
 
 // ====================== LOGOUT FUNCTION ======================
@@ -203,6 +206,86 @@ function controlAccess(role) {
   }
 }
 
+// ====================== ANNOUNCEMENT CAROUSEL ======================
+let currentSlide = 0;
+let slideInterval = null;
+
+const announcements = [
+  {
+    image: "images/announcement1.jpg",
+    title: "MMU Ranked Top 1001-1200 in 2026 Malaysia",
+    subtitle: "Congratulations to all MMU staff and students!"
+  },
+  {
+    image: "images/announcement2.jpg",
+    title: "A Globally Ranked Faculty FCI",
+    subtitle: "Congratulations to FCI faculty and students for their outstanding achievements!"
+  },
+  {
+    image: "images/announcement3.jpg",
+    title: "New Semester Begins",
+    subtitle: "Get ready for an exciting new academic journey!"
+  }
+];
+
+function loadAnnouncements() {
+  const slidesContainer = document.getElementById('announcementSlides');
+  const dotsContainer = document.getElementById('announcementDots');
+
+  if (!slidesContainer || !dotsContainer) {
+    console.warn("Announcement elements not found yet");
+    return;
+  }
+
+  slidesContainer.innerHTML = '';
+  dotsContainer.innerHTML = '';
+
+  announcements.forEach((ann, index) => {
+    const slide = document.createElement('div');
+    slide.className = `slide ${index === 0 ? 'active' : ''}`;
+    slide.style.backgroundImage = `url('${ann.image}')`;
+    slide.innerHTML = `
+      <div class="slide-content">
+        <h4>${ann.title}</h4>
+        <p>${ann.subtitle}</p>
+      </div>
+    `;
+    slidesContainer.appendChild(slide);
+
+    const dot = document.createElement('div');
+    dot.className = `dot ${index === 0 ? 'active' : ''}`;
+    dot.onclick = () => goToSlide(index);
+    dotsContainer.appendChild(dot);
+  });
+
+  currentSlide = 0;
+  if (slideInterval) clearInterval(slideInterval);
+  slideInterval = setInterval(nextSlide, 5000);
+}
+
+function nextSlide() {
+  currentSlide = (currentSlide + 1) % announcements.length;
+  showSlide(currentSlide);
+}
+
+function goToSlide(index) {
+  currentSlide = index;
+  showSlide(currentSlide);
+  if (slideInterval) clearInterval(slideInterval);
+  slideInterval = setInterval(nextSlide, 5000);
+}
+
+function showSlide(index) {
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+
+  slides.forEach(s => s.classList.remove('active'));
+  dots.forEach(d => d.classList.remove('active'));
+
+  if (slides[index]) slides[index].classList.add('active');
+  if (dots[index]) dots[index].classList.add('active');
+}
+
 // ====================== PAGE NAVIGATION ======================
 function showPage(pageId) {
   document.getElementById('dashboard').style.display = 'none';
@@ -228,8 +311,16 @@ if (pageId === 'event') {
 }
 
 function showDashboard() {
+  // Hide all pages
   document.querySelectorAll('.page-content').forEach(el => el.style.display = 'none');
+  
+  // Show dashboard
   document.getElementById('dashboard').style.display = 'block';
+
+  // Load announcements with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    loadAnnouncements();
+  }, 150);
 }
 
 // ====================== EVENTS SYSTEM (With Detail Modal) ======================
@@ -642,54 +733,117 @@ function showTransport(campus) {
 }
 
 
-// ====================== LOST & FOUND ======================
+// ====================== LOST & FOUND (Firestore + Image Upload) ======================
 let lostItemsData = [];
 
-function openForm() {
-  document.getElementById('lostFormModal').style.display = 'block';
+// Open Modal
+function openPostModal() {
+  document.getElementById('lostPostModal').style.display = 'block';
+  setType('lost'); // default
 }
 
-function closeForm() {
-  document.getElementById('lostFormModal').style.display = 'none';
+function closePostModal() {
+  document.getElementById('lostPostModal').style.display = 'none';
+  document.getElementById('lfImage').value = '';
 }
 
-function addItem() {
+function setType(type) {
+  document.getElementById('type-lost').classList.toggle('active', type === 'lost');
+  document.getElementById('type-found').classList.toggle('active', type === 'found');
+}
+
+// Post New Item with Image
+async function postLostItem() {
+  const type = document.getElementById('type-lost').classList.contains('active') ? 'lost' : 'found';
   const date = document.getElementById('lfDate').value;
   const time = document.getElementById('lfTime').value;
   const venue = document.getElementById('lfVenue').value.trim();
-  const item = document.getElementById('lfItem').value.trim();
+  const itemName = document.getElementById('lfItem').value.trim();
   const desc = document.getElementById('lfDesc').value.trim();
+  const fileInput = document.getElementById('lfImage');
 
-  if (!date || !time || !venue || !item || !desc) {
-    alert("Please fill all fields!");
+  if (!date || !time || !venue || !itemName || !desc) {
+    alert("Please fill all required fields!");
     return;
   }
 
-  lostItemsData.push({ date, time, venue, item, desc });
+  let imageUrl = null;
 
-  closeForm();
-  loadItems();
+  // Upload image if selected
+  if (fileInput.files.length > 0) {
+    imageUrl = await uploadImage(fileInput.files[0]);
+  }
+
+  try {
+    await db.collection('lostfound').add({
+      type: type,
+      date: date,
+      time: time,
+      venue: venue,
+      item: itemName,
+      description: desc,
+      imageUrl: imageUrl,
+      postedBy: document.getElementById('userWelcome').innerText.replace('Welcome, ', ''),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("✅ Item posted successfully!");
+    closePostModal();
+    loadLostItems();
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to post item.");
+  }
 }
 
-function loadItems(data = lostItemsData) {
+// Upload Image to Firebase Storage
+async function uploadImage(file) {
+  if (!file) return null;
+  const storageRef = firebase.storage().ref('lostfound/' + Date.now() + '_' + file.name);
+  await storageRef.put(file);
+  return await storageRef.getDownloadURL();
+}
+
+// Load Items
+async function loadLostItems() {
+  try {
+    const snapshot = await db.collection('lostfound')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    lostItemsData = [];
+    snapshot.forEach(doc => {
+      lostItemsData.push({ id: doc.id, ...doc.data() });
+    });
+
+    displayLostItems(lostItemsData);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function displayLostItems(items) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
 
-  if (data.length === 0) {
-    container.innerHTML = `<p class="text-muted">No items posted yet.</p>`;
+  if (items.length === 0) {
+    container.innerHTML = `<p class="text-center text-muted py-5">No items found.</p>`;
     return;
   }
 
-  data.forEach(entry => {
+  items.forEach(item => {
     const col = document.createElement('div');
-    col.className = "col-md-6";
+    col.className = 'col-md-6 col-lg-4';
     col.innerHTML = `
-      <div class="card shadow">
+      <div class="card h-100 shadow-sm">
+        ${item.imageUrl ? `<img src="${item.imageUrl}" class="card-img-top" style="height: 200px; object-fit: cover;">` : ''}
         <div class="card-body">
-          <h5>${entry.item}</h5>
-          <p>${entry.desc}</p>
-          <p><strong>Venue:</strong> ${entry.venue}</p>
-          <p><strong>Date:</strong> ${entry.date} | ${entry.time}</p>
+          <span class="badge ${item.type === 'lost' ? 'bg-danger' : 'bg-success'} mb-2">${item.type.toUpperCase()}</span>
+          <h5 class="card-title">${item.item}</h5>
+          <p class="text-muted small">${item.date} | ${item.time}</p>
+          <p class="text-muted small">📍 ${item.venue}</p>
+          <p class="card-text">${item.description}</p>
         </div>
       </div>
     `;
@@ -698,27 +852,24 @@ function loadItems(data = lostItemsData) {
 }
 
 function filterLostItems() {
-  const keyword = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = lostItemsData.filter(item =>
-    item.item.toLowerCase().includes(keyword) ||
-    item.desc.toLowerCase().includes(keyword) ||
-    item.venue.toLowerCase().includes(keyword)
-  );
-  loadItems(filtered);
-}
+  const keyword = document.getElementById('lostSearch').value.toLowerCase().trim();
+  const status = document.getElementById('statusFilter').value;
 
-function filterByDate(type) {
-  const today = new Date();
-  const filtered = lostItemsData.filter(entry => {
-    const itemDate = new Date(entry.date);
-    const diffDays = (today - itemDate) / (1000 * 60 * 60 * 24);
+  let filtered = lostItemsData;
 
-    if (type === 'today') return diffDays < 1;
-    if (type === 'yesterday') return diffDays >= 1 && diffDays < 2;
-    if (type === 'week') return diffDays <= 7;
-    return true;
-  });
-  loadItems(filtered);
+  if (keyword) {
+    filtered = filtered.filter(item =>
+      item.item.toLowerCase().includes(keyword) ||
+      item.description.toLowerCase().includes(keyword) ||
+      item.venue.toLowerCase().includes(keyword)
+    );
+  }
+
+  if (status) {
+    filtered = filtered.filter(item => item.type === status);
+  }
+
+  displayLostItems(filtered);
 }
 
 // ====================== FEEDBACK SYSTEM ======================
