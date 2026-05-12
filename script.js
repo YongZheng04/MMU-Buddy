@@ -830,7 +830,7 @@ async function loadLostItems() {
   }
 }
 
-// Display Items
+// Display Items with Small Thumbnail
 function displayLostItems(items) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
@@ -843,11 +843,16 @@ function displayLostItems(items) {
   items.forEach(item => {
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4';
+
+    const imageHTML = item.imageUrl ? 
+      `<img src="${item.imageUrl}" class="img-fluid rounded" style="width: 100%; height: 140px; object-fit: cover;" alt="${item.item}">` :
+      `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="width: 100%; height: 140px;">
+         <span class="text-muted">No Image</span>
+       </div>`;
+
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
-        ${item.imageUrl ? 
-          `<img src="${item.imageUrl}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.item}">` : 
-          ''}
+        ${imageHTML}
         <div class="card-body">
           <span class="badge ${item.type === 'lost' ? 'bg-danger' : 'bg-success'} mb-2">${item.type.toUpperCase()}</span>
           <h5 class="card-title">${item.item}</h5>
