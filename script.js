@@ -308,6 +308,9 @@ if (pageId === 'event') {
   if (pageId === 'feedback') {
     initFeedback();
   }
+  if (pageId === 'lostfound') {
+  loadLostItems();
+}
 }
 
 function showDashboard() {
@@ -732,19 +735,18 @@ function showTransport(campus) {
   });
 }
 
-
-// ====================== LOST & FOUND (Firestore + Image Upload) ======================
+// ====================== LOST & FOUND (Fixed + Image Upload) ======================
 let lostItemsData = [];
 
 // Open Modal
 function openPostModal() {
   document.getElementById('lostPostModal').style.display = 'block';
-  setType('lost'); // default
+  setType('lost');
 }
 
 function closePostModal() {
   document.getElementById('lostPostModal').style.display = 'none';
-  document.getElementById('lfImage').value = '';
+  document.getElementById('lfImage').value = ''; // Clear file input
 }
 
 function setType(type) {
@@ -752,7 +754,7 @@ function setType(type) {
   document.getElementById('type-found').classList.toggle('active', type === 'found');
 }
 
-// Post New Item with Image
+// Post New Item
 async function postLostItem() {
   const type = document.getElementById('type-lost').classList.contains('active') ? 'lost' : 'found';
   const date = document.getElementById('lfDate').value;
@@ -769,7 +771,6 @@ async function postLostItem() {
 
   let imageUrl = null;
 
-  // Upload image if selected
   if (fileInput.files.length > 0) {
     imageUrl = await uploadImage(fileInput.files[0]);
   }
@@ -789,23 +790,29 @@ async function postLostItem() {
 
     alert("✅ Item posted successfully!");
     closePostModal();
-    loadLostItems();
+    
+    // FIXED: Refresh the list immediately
+    await loadLostItems();
 
   } catch (error) {
-    console.error(error);
-    alert("Failed to post item.");
+    console.error("Post Error:", error);
+    alert("Failed to post item. Please try again.");
   }
 }
 
-// Upload Image to Firebase Storage
+// Upload Image
 async function uploadImage(file) {
-  if (!file) return null;
-  const storageRef = firebase.storage().ref('lostfound/' + Date.now() + '_' + file.name);
-  await storageRef.put(file);
-  return await storageRef.getDownloadURL();
+  try {
+    const storageRef = firebase.storage().ref('lostfound/' + Date.now() + '_' + file.name);
+    await storageRef.put(file);
+    return await storageRef.getDownloadURL();
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    return null;
+  }
 }
 
-// Load Items
+// Load All Items
 async function loadLostItems() {
   try {
     const snapshot = await db.collection('lostfound')
@@ -819,16 +826,17 @@ async function loadLostItems() {
 
     displayLostItems(lostItemsData);
   } catch (error) {
-    console.error(error);
+    console.error("Load Error:", error);
   }
 }
 
+// Display Items
 function displayLostItems(items) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
 
   if (items.length === 0) {
-    container.innerHTML = `<p class="text-center text-muted py-5">No items found.</p>`;
+    container.innerHTML = `<p class="text-center text-muted py-5">No items posted yet.</p>`;
     return;
   }
 
@@ -837,13 +845,16 @@ function displayLostItems(items) {
     col.className = 'col-md-6 col-lg-4';
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
-        ${item.imageUrl ? `<img src="${item.imageUrl}" class="card-img-top" style="height: 200px; object-fit: cover;">` : ''}
+        ${item.imageUrl ? 
+          `<img src="${item.imageUrl}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.item}">` : 
+          ''}
         <div class="card-body">
           <span class="badge ${item.type === 'lost' ? 'bg-danger' : 'bg-success'} mb-2">${item.type.toUpperCase()}</span>
           <h5 class="card-title">${item.item}</h5>
-          <p class="text-muted small">${item.date} | ${item.time}</p>
+          <p class="text-muted small mb-1">${item.date} | ${item.time}</p>
           <p class="text-muted small">📍 ${item.venue}</p>
           <p class="card-text">${item.description}</p>
+          ${item.postedBy ? `<small class="text-muted">Posted by: ${item.postedBy}</small>` : ''}
         </div>
       </div>
     `;
@@ -859,9 +870,9 @@ function filterLostItems() {
 
   if (keyword) {
     filtered = filtered.filter(item =>
-      item.item.toLowerCase().includes(keyword) ||
-      item.description.toLowerCase().includes(keyword) ||
-      item.venue.toLowerCase().includes(keyword)
+      (item.item && item.item.toLowerCase().includes(keyword)) ||
+      (item.description && item.description.toLowerCase().includes(keyword)) ||
+      (item.venue && item.venue.toLowerCase().includes(keyword))
     );
   }
 
