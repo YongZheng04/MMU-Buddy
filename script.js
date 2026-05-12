@@ -1007,7 +1007,7 @@ function initFeedback() {
   // Set title based on role
   const titleEl = document.getElementById('feedbackListTitle');
   if (currentUserRole === 'academic') {
-    titleEl.textContent = "All Student Feedbacks (Admin View)";
+    titleEl.textContent = "Others Feedbacks (Admin View)";
   } else {
     titleEl.textContent = "Others Feedbacks";
   }
