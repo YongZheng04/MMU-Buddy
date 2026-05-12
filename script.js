@@ -13,6 +13,7 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 console.log("✅ Firebase Connected Successfully!");
 
@@ -735,10 +736,9 @@ function showTransport(campus) {
   });
 }
 
-// ====================== LOST & FOUND (Fixed + Image Upload) ======================
+// ====================== LOST & FOUND (Basic Version) ======================
 let lostItemsData = [];
 
-// Open Modal
 function openPostModal() {
   document.getElementById('lostPostModal').style.display = 'block';
   setType('lost');
@@ -746,7 +746,6 @@ function openPostModal() {
 
 function closePostModal() {
   document.getElementById('lostPostModal').style.display = 'none';
-  document.getElementById('lfImage').value = ''; // Clear file input
 }
 
 function setType(type) {
@@ -754,7 +753,6 @@ function setType(type) {
   document.getElementById('type-found').classList.toggle('active', type === 'found');
 }
 
-// Post New Item
 async function postLostItem() {
   const type = document.getElementById('type-lost').classList.contains('active') ? 'lost' : 'found';
   const date = document.getElementById('lfDate').value;
@@ -762,17 +760,10 @@ async function postLostItem() {
   const venue = document.getElementById('lfVenue').value.trim();
   const itemName = document.getElementById('lfItem').value.trim();
   const desc = document.getElementById('lfDesc').value.trim();
-  const fileInput = document.getElementById('lfImage');
 
   if (!date || !time || !venue || !itemName || !desc) {
-    alert("Please fill all required fields!");
+    alert("Please fill all fields!");
     return;
-  }
-
-  let imageUrl = null;
-
-  if (fileInput.files.length > 0) {
-    imageUrl = await uploadImage(fileInput.files[0]);
   }
 
   try {
@@ -783,36 +774,21 @@ async function postLostItem() {
       venue: venue,
       item: itemName,
       description: desc,
-      imageUrl: imageUrl,
       postedBy: document.getElementById('userWelcome').innerText.replace('Welcome, ', ''),
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    alert("✅ Item posted successfully!");
+    alert("✅ Posted successfully!");
     closePostModal();
-    
-    // FIXED: Refresh the list immediately
     await loadLostItems();
 
   } catch (error) {
-    console.error("Post Error:", error);
-    alert("Failed to post item. Please try again.");
+    console.error(error);
+    alert("Failed to post item.");
   }
 }
 
-// Upload Image
-async function uploadImage(file) {
-  try {
-    const storageRef = firebase.storage().ref('lostfound/' + Date.now() + '_' + file.name);
-    await storageRef.put(file);
-    return await storageRef.getDownloadURL();
-  } catch (error) {
-    console.error("Image upload failed:", error);
-    return null;
-  }
-}
-
-// Load All Items
+// Load Items
 async function loadLostItems() {
   try {
     const snapshot = await db.collection('lostfound')
@@ -826,11 +802,11 @@ async function loadLostItems() {
 
     displayLostItems(lostItemsData);
   } catch (error) {
-    console.error("Load Error:", error);
+    console.error(error);
   }
 }
 
-// Display Items with Small Thumbnail
+// Display Items
 function displayLostItems(items) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
@@ -843,23 +819,15 @@ function displayLostItems(items) {
   items.forEach(item => {
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4';
-
-    const imageHTML = item.imageUrl ? 
-      `<img src="${item.imageUrl}" class="img-fluid rounded" style="width: 100%; height: 140px; object-fit: cover;" alt="${item.item}">` :
-      `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="width: 100%; height: 140px;">
-         <span class="text-muted">No Image</span>
-       </div>`;
-
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
-        ${imageHTML}
         <div class="card-body">
           <span class="badge ${item.type === 'lost' ? 'bg-danger' : 'bg-success'} mb-2">${item.type.toUpperCase()}</span>
           <h5 class="card-title">${item.item}</h5>
-          <p class="text-muted small mb-1">${item.date} | ${item.time}</p>
+          <p class="text-muted small">${item.date} | ${item.time}</p>
           <p class="text-muted small">📍 ${item.venue}</p>
           <p class="card-text">${item.description}</p>
-          ${item.postedBy ? `<small class="text-muted">Posted by: ${item.postedBy}</small>` : ''}
+          ${item.postedBy ? `<small class="text-muted">By: ${item.postedBy}</small>` : ''}
         </div>
       </div>
     `;
@@ -875,9 +843,9 @@ function filterLostItems() {
 
   if (keyword) {
     filtered = filtered.filter(item =>
-      (item.item && item.item.toLowerCase().includes(keyword)) ||
-      (item.description && item.description.toLowerCase().includes(keyword)) ||
-      (item.venue && item.venue.toLowerCase().includes(keyword))
+      item.item.toLowerCase().includes(keyword) ||
+      item.description.toLowerCase().includes(keyword) ||
+      item.venue.toLowerCase().includes(keyword)
     );
   }
 
@@ -1041,7 +1009,7 @@ function initFeedback() {
   if (currentUserRole === 'academic') {
     titleEl.textContent = "All Student Feedbacks (Admin View)";
   } else {
-    titleEl.textContent = "My Previous Feedbacks";
+    titleEl.textContent = "Others Feedbacks";
   }
 
   displayFeedbacks();
