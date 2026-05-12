@@ -73,8 +73,10 @@
     </button>
   </div>
 
-  <div class="announcements">
-    ANNOUNCEMENTS : MMU become top 50 best university in Malaysia.
+  <!-- ====================== ANNOUNCEMENT CAROUSEL ====================== -->
+  <div id="announcementCarousel" class="announcement-carousel mb-4">
+    <div id="announcementSlides" class="slides-container"></div>
+    <div id="announcementDots" class="carousel-dots"></div>
   </div>
 
   <!-- Feature Tiles -->
@@ -310,46 +312,88 @@
   <div id="transportDisplay" class="row g-4" style="display:none;"></div>
 </div>
 
+<!-- ====================== LOST & FOUND PAGE (Modern App) ====================== -->
 <div id="lostfound" class="page-content container">
-  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
-
-  <h2 class="mb-4">Lost & Found</h2>
-
-  <!-- Top Controls -->
-  <div class="d-flex justify-content-between mb-3">
-    <button class="btn btn-success" onclick="openForm()">+ Add Item</button>
-
-    <input type="text" id="searchInput" class="form-control w-50" 
-           placeholder="Search items..." onkeyup="filterLostItems()">
+  <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back to Dashboard</button>
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Lost & Found</h2>
+    <button class="btn btn-success btn-lg" onclick="openPostModal()">
+      <i class="bi bi-plus-circle"></i> Post New Item
+    </button>
   </div>
 
-  <!-- Filter Buttons -->
-  <div class="mb-4">
-    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('today')">Today</button>
-    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('yesterday')">Yesterday</button>
-    <button class="btn btn-outline-primary btn-sm" onclick="filterByDate('week')">Last 7 Days</button>
-    <button class="btn btn-outline-secondary btn-sm" onclick="loadItems()">Reset</button>
+  <!-- Search & Filter -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <input type="text" id="lostSearch" class="form-control form-control-lg" 
+             placeholder="Search lost or found items..." onkeyup="filterLostItems()">
+    </div>
+    <div class="col-md-4">
+      <select id="statusFilter" class="form-select form-select-lg" onchange="filterLostItems()">
+        <option value="">All Items</option>
+        <option value="lost">Lost Items</option>
+        <option value="found">Found Items</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Items Display -->
-  <div id="lostItems" class="row g-3"></div>
+  <!-- Items Grid -->
+  <div id="lostItems" class="row g-4"></div>
 </div>
 
-<!-- Modal Form -->
-<div id="lostFormModal" class="modal" tabindex="-1" style="display:none;">
-  <div class="modal-dialog">
-    <div class="modal-content p-3">
-      <h4>Add Lost/Found Item</h4>
+<!-- Post New Item Modal -->
+<div id="lostPostModal" class="modal" style="display:none;">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Post New Lost / Found Item</h5>
+        <button type="button" class="btn-close" onclick="closePostModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Type</label>
+          <div class="btn-group w-100">
+            <button type="button" class="btn btn-outline-danger active" id="type-lost" onclick="setType('lost')">Lost Item</button>
+            <button type="button" class="btn btn-outline-success" id="type-found" onclick="setType('found')">Found Item</button>
+          </div>
+        </div>
 
-      <input type="date" id="lfDate" class="form-control mb-2">
-      <input type="time" id="lfTime" class="form-control mb-2">
-      <input type="text" id="lfVenue" class="form-control mb-2" placeholder="Venue">
-      <input type="text" id="lfItem" class="form-control mb-2" placeholder="Item">
-      <textarea id="lfDesc" class="form-control mb-2" placeholder="Description"></textarea>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Date</label>
+            <input type="date" id="lfDate" class="form-control" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Time</label>
+            <input type="time" id="lfTime" class="form-control" required>
+          </div>
+        </div>
 
-      <div class="d-flex justify-content-end gap-2">
-        <button class="btn btn-secondary" onclick="closeForm()">Cancel</button>
-        <button class="btn btn-primary" onclick="addItem()">Post</button>
+        <div class="mb-3">
+          <label class="form-label">Location / Venue</label>
+          <input type="text" id="lfVenue" class="form-control" placeholder="e.g. Library, FCM Building" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Item Name</label>
+          <input type="text" id="lfItem" class="form-control" placeholder="e.g. Black Wallet, iPhone 14" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea id="lfDesc" class="form-control" rows="3" placeholder="Color, brand, special marks..." required></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Upload Photo (Optional)</label>
+          <input type="file" id="lfImage" accept="image/*" class="form-control">
+          <small class="text-muted">Max 5MB</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePostModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="postLostItem()">Post Item</button>
       </div>
     </div>
   </div>
