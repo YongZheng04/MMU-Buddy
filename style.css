@@ -144,6 +144,7 @@ body {
   font-weight: 600;
   border-radius: 12px;
   transition: all 0.3s;
+  padding: 12px 24px;
 }
 
 .btn-campus.active {
