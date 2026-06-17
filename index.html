@@ -32,33 +32,53 @@
   </div>
 </div>
 
-<!-- 2. STUDENT LOGIN FORM -->
+<!-- STUDENT LOGIN FORM -->
 <div id="studentLogin" class="page-content container" style="display:none; max-width: 450px;">
   <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
   <h3 class="text-center mb-4">Student Login</h3>
-  <div class="mb-3">
-    <label class="form-label">Full Name <span class="text-danger">*</span></label>
-    <input type="text" id="studentName" class="form-control" placeholder="Enter your full name">
-  </div>
+  
   <div class="mb-3">
     <label class="form-label">Student ID <span class="text-danger">*</span></label>
-    <input type="text" id="studentID" class="form-control" placeholder="e.g. 123456789">
+    <input type="text" id="studentID" class="form-control" placeholder="e.g. 1234567890">
+    <small id="studentIDError" class="text-danger"></small>
   </div>
+  
+  <div class="mb-3">
+    <label class="form-label">Password <span class="text-danger">*</span></label>
+    <div class="input-group">
+      <input type="password" id="studentPassword" class="form-control">
+      <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('studentPassword')">
+        👁
+      </button>
+    </div>
+    <small id="studentPassError" class="text-danger"></small>
+  </div>
+  
   <button class="btn btn-primary w-100" onclick="loginAs('student')">Login</button>
 </div>
 
-<!-- 3. ACADEMIC LOGIN FORM -->
+<!-- ACADEMIC LOGIN FORM -->
 <div id="academicLogin" class="page-content container" style="display:none; max-width: 450px;">
   <button class="btn btn-secondary back-btn" onclick="backToLogin()">← Back</button>
   <h3 class="text-center mb-4">Academic Staff Login</h3>
-  <div class="mb-3">
-    <label class="form-label">Full Name <span class="text-danger">*</span></label>
-    <input type="text" id="academicName" class="form-control" placeholder="Enter your full name">
-  </div>
+  
   <div class="mb-3">
     <label class="form-label">Staff ID <span class="text-danger">*</span></label>
-    <input type="text" id="academicID" class="form-control" placeholder="e.g. ST12345">
+    <input type="text" id="academicID" class="form-control" placeholder="e.g. ST0001">
+    <small id="academicIDError" class="text-danger"></small>
   </div>
+  
+  <div class="mb-3">
+    <label class="form-label">Password <span class="text-danger">*</span></label>
+    <div class="input-group">
+      <input type="password" id="academicPassword" class="form-control">
+      <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('academicPassword')">
+        👁
+      </button>
+    </div>
+    <small id="academicPassError" class="text-danger"></small>
+  </div>
+  
   <button class="btn btn-primary w-100" onclick="loginAs('academic')">Login</button>
 </div>
 
@@ -189,34 +209,31 @@
 
     <!-- Right side image / illustration -->
     <div class="col-lg-4 text-center d-none d-lg-block">
-      <img src="https://via.placeholder.com/400x500?text=MMU+Programmes" 
+      <img src="images/programme.jpg" 
            alt="MMU Academic Programmes" 
            class="img-fluid rounded shadow">
     </div>
   </div>
 </div>
 
-<!-- Campus Maps Page -->
+<!-- ====================== CAMPUS MAPS PAGE ====================== -->
 <div id="maps" class="page-content container">
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
-  <h2>Campus Maps</h2>
-  <p class="lead">Select your campus to view the map:</p>
+  <h2 class="mb-4">Campus Maps</h2>
+  <p class="text-muted mb-4">Select your campus to view the map:</p>
 
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="card h-100 text-center" onclick="showCampusMap('cyberjaya')" style="cursor: pointer;">
-        <div class="card-body">
-          <h5>Cyberjaya Campus</h5>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card h-100 text-center" onclick="showCampusMap('melaka')" style="cursor: pointer;">
-        <div class="card-body">
-          <h5>Melaka Campus</h5>
-        </div>
-      </div>
-    </div>
+  <!-- Modern Campus Selector -->
+  <div class="d-flex mb-4 bg-light rounded-3 p-1" style="width: fit-content;">
+    <button onclick="showCampusMap('cyberjaya')" 
+            id="map-btn-cyberjaya"
+            class="btn btn-campus active px-4 py-2">
+      Cyberjaya Campus
+    </button>
+    <button onclick="showCampusMap('melaka')" 
+            id="map-btn-melaka"
+            class="btn btn-campus px-4 py-2">
+      Melaka Campus
+    </button>
   </div>
 
   <div id="mapDisplay" class="mt-5 text-center" style="display: none;">
@@ -273,14 +290,18 @@
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
   
   <h2 class="mb-4">Emergency Hotlines</h2>
-  <p class="lead mb-4">Select your campus:</p>
+  <p class="text-muted mb-4">Select your campus:</p>
 
-  <!-- Campus Buttons -->
-  <div class="d-flex gap-3 mb-4">
-    <button class="btn btn-primary" onclick="showHotlines('cyberjaya')">
+  <!-- Modern Campus Selector -->
+  <div class="d-flex mb-4 bg-light rounded-3 p-1" style="width: fit-content;">
+    <button onclick="showHotlines('cyberjaya')" 
+            id="hotline-btn-cyberjaya"
+            class="btn btn-campus active px-4 py-2">
       Cyberjaya Campus
     </button>
-    <button class="btn btn-secondary" onclick="showHotlines('melaka')">
+    <button onclick="showHotlines('melaka')" 
+            id="hotline-btn-melaka"
+            class="btn btn-campus px-4 py-2">
       Melaka Campus
     </button>
   </div>
@@ -297,14 +318,18 @@
   <button class="btn btn-primary back-btn" onclick="showDashboard()">← Back</button>
 
   <h2 class="mb-4">Transport Schedules</h2>
-  <p class="lead mb-4">Select your campus:</p>
+  <p class="text-muted mb-4">Select your campus:</p>
 
-  <!-- Campus Buttons -->
-  <div class="d-flex gap-3 mb-4">
-    <button class="btn btn-primary" onclick="showTransport('cyberjaya')">
+  <!-- Modern Campus Selector -->
+  <div class="d-flex mb-4 bg-light rounded-3 p-1" style="width: fit-content;">
+    <button onclick="showTransport('cyberjaya')" 
+            id="transport-btn-cyberjaya"
+            class="btn btn-campus active px-4 py-2">
       Cyberjaya Campus
     </button>
-    <button class="btn btn-secondary" onclick="showTransport('melaka')">
+    <button onclick="showTransport('melaka')" 
+            id="transport-btn-melaka"
+            class="btn btn-campus px-4 py-2">
       Melaka Campus
     </button>
   </div>
@@ -359,28 +384,33 @@
 
         <div class="row">
           <div class="col-6 mb-3">
-            <label>Date</label>
+            <label>Date <span class="text-danger">*</span></label>
             <input type="date" id="lfDate" class="form-control" required>
+            <small id="lfDateError" class="text-danger"></small>
           </div>
           <div class="col-6 mb-3">
-            <label>Time</label>
+            <label>Time <span class="text-danger">*</span></label>
             <input type="time" id="lfTime" class="form-control" required>
+            <small id="lfTimeError" class="text-danger"></small>
           </div>
         </div>
 
         <div class="mb-3">
-          <label>Venue</label>
+          <label>Venue <span class="text-danger">*</span></label>
           <input type="text" id="lfVenue" class="form-control" placeholder="e.g. Library, Canteen" required>
+          <small id="lfVenueError" class="text-danger"></small>
         </div>
 
         <div class="mb-3">
-          <label>Item Name</label>
+          <label>Item Name <span class="text-danger">*</span></label>
           <input type="text" id="lfItem" class="form-control" placeholder="e.g. Black Wallet" required>
+          <small id="lfItemError" class="text-danger"></small>
         </div>
 
         <div class="mb-3">
-          <label>Description</label>
+          <label>Description <span class="text-danger">*</span></label>
           <textarea id="lfDesc" class="form-control" rows="4" placeholder="Details, color, brand..." required></textarea>
+          <small id="lfDescError" class="text-danger"></small>
         </div>
       </div>
       <div class="modal-footer">
@@ -403,7 +433,6 @@
     <div class="card-body">
       <h5 class="card-title mb-4">Submit New Feedback</h5>
       <form id="feedbackForm">
-        <!-- ... (keep your existing form fields) ... -->
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label">Category <span class="text-danger">*</span></label>
@@ -451,17 +480,13 @@
     </div>
   </div>
 
-  <!-- Feedback List Section -->
-  <h5 class="mb-3" id="feedbackListTitle">Others Feedbacks</h5>
-  
-  <!-- Search Bar -->
+  <!-- Feedback List -->
+  <h5 class="mb-3" id="feedbackListTitle">All Feedbacks</h5>
   <div class="mb-3">
     <input type="text" id="feedbackSearch" class="form-control" placeholder="Search feedbacks..." onkeyup="filterFeedbacks()">
   </div>
 
-  <div id="feedbackList" class="row g-3">
-    <!-- Populated by JavaScript -->
-  </div>
+  <div id="feedbackList" class="row g-3"></div>
 </div>
 
 <script src="script.js"></script>
