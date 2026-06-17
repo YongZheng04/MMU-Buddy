@@ -46,17 +46,24 @@ function selectRole(role) {
   }
 }
 
-// ====================== LOGIN FUNCTIONS (Firestore Version) ======================
+// ====================== LOGIN FUNCTIONS (ID + Password + Inline Error) ======================
 async function loginAs(role) {
-  let name = "";
+  // Clear previous errors
+  clearErrors();
+
   let id = "";
+  let password = "";
 
   if (role === 'student') {
-    name = document.getElementById('studentName').value.trim();
     id = document.getElementById('studentID').value.trim();
+    password = document.getElementById('studentPassword').value.trim();
 
-    if (!name || !id) {
-      alert("Please enter both Name and Student ID");
+    if (!id) {
+      document.getElementById('studentIDError').textContent = "Student ID is required";
+      return;
+    }
+    if (!password) {
+      document.getElementById('studentPassError').textContent = "Password is required";
       return;
     }
 
@@ -67,14 +74,14 @@ async function loginAs(role) {
         .get();
 
       if (querySnapshot.empty) {
-        alert("❌ Invalid Student ID.");
+        document.getElementById('studentIDError').textContent = "Invalid Student ID";
         return;
       }
 
       const userDoc = querySnapshot.docs[0].data();
-      
-      if (userDoc.name.toLowerCase() !== name.toLowerCase()) {
-        alert("❌ Wrong Name for this Student ID.");
+
+      if (userDoc.password !== password) {
+        document.getElementById('studentPassError').textContent = "Incorrect Password";
         return;
       }
 
@@ -83,17 +90,21 @@ async function loginAs(role) {
 
     } catch (error) {
       console.error("Login Error:", error);
-      alert("❌ Connection error. Please check your internet and try again.");
+      alert("Connection error. Please check your internet.");
       return;
     }
 
   } 
   else if (role === 'academic') {
-    name = document.getElementById('academicName').value.trim();
     id = document.getElementById('academicID').value.trim();
+    password = document.getElementById('academicPassword').value.trim();
 
-    if (!name || !id) {
-      alert("Please enter both Name and Staff ID");
+    if (!id) {
+      document.getElementById('academicIDError').textContent = "Staff ID is required";
+      return;
+    }
+    if (!password) {
+      document.getElementById('academicPassError').textContent = "Password is required";
       return;
     }
 
@@ -104,14 +115,14 @@ async function loginAs(role) {
         .get();
 
       if (querySnapshot.empty) {
-        alert("❌ Invalid Staff ID.");
+        document.getElementById('academicIDError').textContent = "Invalid Staff ID";
         return;
       }
 
       const userDoc = querySnapshot.docs[0].data();
-      
-      if (userDoc.name.toLowerCase() !== name.toLowerCase()) {
-        alert("❌ Wrong Name for this Staff ID.");
+
+      if (userDoc.password !== password) {
+        document.getElementById('academicPassError').textContent = "Incorrect Password";
         return;
       }
 
@@ -120,7 +131,7 @@ async function loginAs(role) {
 
     } catch (error) {
       console.error("Login Error:", error);
-      alert("❌ Connection error. Please try again.");
+      alert("Connection error. Please check your internet.");
       return;
     }
   } 
@@ -129,48 +140,66 @@ async function loginAs(role) {
     document.getElementById('userWelcome').innerText = "Welcome, Visitor";
   }
 
-  // Success - Show Dashboard
-  document.getElementById('logoutBtn').style.display = 
-    (role === 'student' || role === 'academic') ? 'block' : 'none';
-
+  // Success Login
+  document.getElementById('logoutBtn').style.display = 'block';
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('studentLogin').style.display = 'none';
   document.getElementById('academicLogin').style.display = 'none';
 
   controlAccess(currentUserRole);
   document.getElementById('dashboard').style.display = 'block';
-
-  // After showing dashboard
   setTimeout(loadAnnouncements, 300);
 }
 
-// ====================== LOGOUT FUNCTION ======================
+// Clear all error messages
+function clearErrors() {
+  document.getElementById('studentIDError').textContent = '';
+  document.getElementById('studentPassError').textContent = '';
+  document.getElementById('academicIDError').textContent = '';
+  document.getElementById('academicPassError').textContent = '';
+}
+
+// Toggle Password Visibility
+function togglePassword(fieldId) {
+  const field = document.getElementById(fieldId);
+  field.type = field.type === "password" ? "text" : "password";
+}
+
+// ====================== LOGOUT FUNCTION (No Confirmation) ======================
 function logout() {
-  if (confirm("Are you sure you want to log out?")) {
-    // Clear all states
-    currentUserRole = '';
-    
-    // Hide dashboard and all pages
-    document.getElementById('dashboard').style.display = 'none';
-    document.querySelectorAll('.page-content').forEach(el => {
-      el.style.display = 'none';
-    });
+  currentUserRole = '';
+  
+  document.getElementById('dashboard').style.display = 'none';
+  document.querySelectorAll('.page-content').forEach(el => {
+    el.style.display = 'none';
+  });
 
-    // Show login page again
-    document.getElementById('loginPage').style.display = 'block';
-    
-    // Clear input fields
-    document.getElementById('studentName').value = '';
-    document.getElementById('studentID').value = '';
-    document.getElementById('academicName').value = '';
-    document.getElementById('academicID').value = '';
+  document.getElementById('loginPage').style.display = 'block';
+  
+  // Clear inputs
+  document.getElementById('studentID').value = '';
+  document.getElementById('studentPassword').value = '';
+  document.getElementById('academicID').value = '';
+  document.getElementById('academicPassword').value = '';
 
-    // Reset welcome text
-    document.getElementById('userWelcome').innerText = "Welcome to MMU Buddy";
-    document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('userWelcome').innerText = "Welcome to MMU Buddy";
+  document.getElementById('logoutBtn').style.display = 'none';
+}
 
-    console.log("✅ Logged out successfully");
-  }
+// ====================== BACK TO LOGIN ======================
+function backToLogin() {
+  // Hide login forms
+  document.getElementById('studentLogin').style.display = 'none';
+  document.getElementById('academicLogin').style.display = 'none';
+  
+  // Show main role selection page
+  document.getElementById('loginPage').style.display = 'block';
+  
+  // Optional: Clear input fields when going back
+  document.getElementById('studentID').value = '';
+  document.getElementById('studentPassword').value = '';
+  document.getElementById('academicID').value = '';
+  document.getElementById('academicPassword').value = '';
 }
 
 // ====================== ROLE ACCESS CONTROL ======================
@@ -493,6 +522,11 @@ function switchEventTab(tab) {
 
 // ====================== CAMPUS MAPS ======================
 function showCampusMap(campus) {
+  // Update active button
+  document.querySelectorAll('.btn-campus').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `map-btn-${campus}`);
+  });
+
   const mapDisplay = document.getElementById('mapDisplay');
   const mapTitle = document.getElementById('mapTitle');
   const mapImage = document.getElementById('campusMapImage');
@@ -633,65 +667,69 @@ function filterFood() {
   });
 }
 
-// ====================== HOTLINES ======================
-const hotlineData = {
-  cyberjaya: [
-    { name: "MMU Security Hotline", number: "03-8312 5939" },
-    { name: "MMU FMD Hotline", number: "013-613 5117" },
-    { name: "Fire Department (Cyberjaya)", number: "03-8318 4142" },
-    { name: "Police (Cyberjaya)", number: "03-8318 2222" },
-    { name: "Hospital (Cyberjaya)", number: "03-8873 3500" },
-    { name: "Hospital (Putrajaya)", number: "03-8312 4200" }
-  ],
-  melaka: [] // can fill later
-};
+// ====================== HOTLINES (Firestore + Modern Design) ======================
+async function showHotlines(campus) {
+  // Update active button style
+  document.querySelectorAll('.btn-campus').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `hotline-btn-${campus}`);
+  });
 
-// Show Hotlines
-function showHotlines(campus) {
   const list = document.getElementById('hotlineList');
   const title = document.getElementById('campusTitle');
   const display = document.getElementById('hotlineDisplay');
 
   list.innerHTML = '';
-
-  if (campus === 'cyberjaya') {
-    title.textContent = "Cyberjaya Campus Emergency Numbers";
-  } else if (campus === 'melaka') {
-    title.textContent = "Melaka Campus Emergency Numbers";
-  }
-
-  const data = hotlineData[campus];
-
-  if (!data || data.length === 0) {
-    list.innerHTML = `<li class="list-group-item text-muted">No data available yet.</li>`;
-  } else {
-    data.forEach(item => {
-      const li = document.createElement('li');
-      li.className = "list-group-item d-flex justify-content-between";
-      li.innerHTML = `
-        <span>${item.name}</span>
-        <strong>${item.number}</strong>
-      `;
-      list.appendChild(li);
-    });
-  }
-
   display.style.display = 'block';
+
+  try {
+    const doc = await db.collection('hotlines').doc(campus).get();
+
+    if (!doc.exists) {
+      title.textContent = campus === 'cyberjaya' ? 
+        "Cyberjaya Campus Emergency Numbers" : "Melaka Campus Emergency Numbers";
+      list.innerHTML = `<li class="list-group-item text-muted">No data available yet.</li>`;
+      return;
+    }
+
+    const data = doc.data();
+    title.textContent = data.title || 
+      (campus === 'cyberjaya' ? "Cyberjaya Campus Emergency Numbers" : "Melaka Campus Emergency Numbers");
+
+    const numbers = data.numbers || [];
+
+    if (numbers.length === 0) {
+      list.innerHTML = `<li class="list-group-item text-muted">No emergency numbers available.</li>`;
+    } else {
+      numbers.forEach(item => {
+        const li = document.createElement('li');
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.innerHTML = `
+          <span>${item.name}</span>
+          <strong>${item.number}</strong>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+  } catch (error) {
+    console.error("Error loading hotlines:", error);
+    list.innerHTML = `<li class="list-group-item text-muted">Failed to load data.</li>`;
+  }
 }
 
 // ====================== TRANSPORT ======================
 const transportData = {
   cyberjaya: [
     {
-      name: "Rapid KL Bus T404",
-      desc: "Connects Cyberjaya areas to nearby MRT/LRT stations",
+      name: "Rapid KL Bus T504",
+      desc: "Connects Cyberjaya areas to MRT stations",
       frequency: "Every 20–30 minutes",
       image: "images/T504bus.jpg", // you can add your own image
       link: "https://maps.app.goo.gl/cs3Hhj7rs7uXUAPY8"
     },
     {
-      name: "Rapid KL Bus T405",
-      desc: "Serves Cyberjaya residential & commercial zones",
+      name: "Rapid KL Bus T505",
+      desc: "Connects Cyberjaya areas to MMU University",
       frequency: "Every 20–30 minutes",
       image: "images/T505bus.jpg",
       link: "https://maps.app.goo.gl/kuynBFsRmW4Psdbq6"
@@ -702,6 +740,11 @@ const transportData = {
 
 // Show Transport
 function showTransport(campus) {
+  // Update active button
+  document.querySelectorAll('.btn-campus').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `transport-btn-${campus}`);
+  });
+
   const container = document.getElementById('transportDisplay');
   container.innerHTML = '';
   container.style.display = 'flex';
@@ -753,7 +796,11 @@ function setType(type) {
   document.getElementById('type-found').classList.toggle('active', type === 'found');
 }
 
+// Post New Item
 async function postLostItem() {
+  // Clear previous errors
+  clearLostErrors();
+
   const type = document.getElementById('type-lost').classList.contains('active') ? 'lost' : 'found';
   const date = document.getElementById('lfDate').value;
   const time = document.getElementById('lfTime').value;
@@ -761,10 +808,30 @@ async function postLostItem() {
   const itemName = document.getElementById('lfItem').value.trim();
   const desc = document.getElementById('lfDesc').value.trim();
 
-  if (!date || !time || !venue || !itemName || !desc) {
-    alert("Please fill all fields!");
-    return;
+  let hasError = false;
+
+  if (!date) {
+    document.getElementById('lfDateError').textContent = "Date is required";
+    hasError = true;
   }
+  if (!time) {
+    document.getElementById('lfTimeError').textContent = "Time is required";
+    hasError = true;
+  }
+  if (!venue) {
+    document.getElementById('lfVenueError').textContent = "Venue is required";
+    hasError = true;
+  }
+  if (!itemName) {
+    document.getElementById('lfItemError').textContent = "Item name is required";
+    hasError = true;
+  }
+  if (!desc) {
+    document.getElementById('lfDescError').textContent = "Description is required";
+    hasError = true;
+  }
+
+  if (hasError) return;
 
   try {
     await db.collection('lostfound').add({
@@ -778,14 +845,39 @@ async function postLostItem() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    alert("✅ Posted successfully!");
+    // Success - No alert, just refresh
     closePostModal();
     await loadLostItems();
 
+    // Optional: Show green success message at top of Lost & Found page
+    showSuccessMessage();
+
   } catch (error) {
     console.error(error);
-    alert("Failed to post item.");
+    alert("Failed to post item. Please try again.");   // Only keep error alert
   }
+}
+
+// Show temporary success message
+function showSuccessMessage() {
+  const successDiv = document.createElement('div');
+  successDiv.className = 'alert alert-success text-center mb-3';
+  successDiv.textContent = "✅ Item posted successfully!";
+  const lostPage = document.getElementById('lostfound');
+  lostPage.insertBefore(successDiv, lostPage.children[1]);
+
+  setTimeout(() => {
+    successDiv.remove();
+  }, 2500);
+}
+
+// Clear Error Messages
+function clearLostErrors() {
+  document.getElementById('lfDateError').textContent = '';
+  document.getElementById('lfTimeError').textContent = '';
+  document.getElementById('lfVenueError').textContent = '';
+  document.getElementById('lfItemError').textContent = '';
+  document.getElementById('lfDescError').textContent = '';
 }
 
 // Load Items
@@ -856,75 +948,113 @@ function filterLostItems() {
   displayLostItems(filtered);
 }
 
-// ====================== FEEDBACK SYSTEM ======================
-let userFeedbacks = [];
-let feedbackFormInitialized = false;
+// ====================== FEEDBACK SYSTEM (Firestore + Show Name/ID) ======================
+let allFeedbacks = [];
 
-function loadUserFeedbacks() {
-  const saved = localStorage.getItem('mmuFeedbacks');
-  if (saved) userFeedbacks = JSON.parse(saved);
-}
+// Load Feedbacks
+async function loadFeedbacks() {
+  try {
+    const snapshot = await db.collection('feedbacks')
+      .orderBy('createdAt', 'desc')
+      .get();
 
-function saveFeedbacks() {
-  localStorage.setItem('mmuFeedbacks', JSON.stringify(userFeedbacks));
-}
+    allFeedbacks = [];
+    snapshot.forEach(doc => {
+      allFeedbacks.push({ id: doc.id, ...doc.data() });
+    });
 
-function deleteFeedback(id) {
-  if (confirm("Delete this feedback?")) {
-    userFeedbacks = userFeedbacks.filter(fb => fb.id !== id);
-    saveFeedbacks();
     displayFeedbacks();
+  } catch (error) {
+    console.error("Error loading feedbacks:", error);
   }
 }
 
-function filterFeedbacks() {
-  const keyword = document.getElementById('feedbackSearch').value.toLowerCase().trim();
-  displayFeedbacks(keyword);
+// Submit Feedback
+function handleFeedbackSubmit(e) {
+  e.preventDefault();
+
+  const category = document.getElementById('fbCategory').value;
+  const rating = parseInt(document.getElementById('fbRating').value);
+  const subject = document.getElementById('fbSubject').value.trim();
+  const message = document.getElementById('fbMessage').value.trim();
+  const anonymous = document.getElementById('fbAnonymous').checked;
+
+  if (!category || rating === 0 || !subject || !message) {
+    alert("Please fill all required fields and give a rating.");
+    return;
+  }
+
+  const userWelcome = document.getElementById('userWelcome').innerText;
+  const userName = userWelcome.replace('Welcome, ', '');
+
+  try {
+    db.collection('feedbacks').add({
+      category: category,
+      rating: rating,
+      subject: subject,
+      message: message,
+      anonymous: anonymous,
+      name: anonymous ? null : userName,
+      postedBy: userName,
+      date: new Date().toLocaleDateString('en-MY'),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    const form = document.getElementById('feedbackForm');
+    const successDiv = document.createElement('div');
+    successDiv.className = 'alert alert-success mt-3';
+    successDiv.textContent = "Thank you! Your feedback has been submitted.";
+    form.appendChild(successDiv);
+
+    setTimeout(() => {
+      form.reset();
+      document.getElementById('fbRating').value = '0';
+      document.querySelectorAll('#starRating span').forEach(s => s.classList.remove('active'));
+      successDiv.remove();
+      loadFeedbacks();
+    }, 1800);
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to submit feedback.");
+  }
 }
 
+// Display Feedbacks
 function displayFeedbacks(searchTerm = '') {
   const container = document.getElementById('feedbackList');
   container.innerHTML = '';
 
-  let filteredFeedbacks = userFeedbacks;
+  let filtered = allFeedbacks;
 
   if (searchTerm) {
-    filteredFeedbacks = userFeedbacks.filter(fb =>
-      fb.subject.toLowerCase().includes(searchTerm) ||
-      fb.message.toLowerCase().includes(searchTerm) ||
-      fb.category.toLowerCase().includes(searchTerm)
+    filtered = filtered.filter(fb =>
+      (fb.subject && fb.subject.toLowerCase().includes(searchTerm)) ||
+      (fb.message && fb.message.toLowerCase().includes(searchTerm)) ||
+      (fb.category && fb.category.toLowerCase().includes(searchTerm))
     );
   }
 
-  if (filteredFeedbacks.length === 0) {
-    container.innerHTML = `<div class="col-12"><p class="text-muted text-center py-5">No feedbacks found.</p></div>`;
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="col-12"><p class="text-muted text-center py-5">No feedbacks yet.</p></div>`;
     return;
   }
 
-  const isAdmin = currentUserRole === 'academic';
-
-  filteredFeedbacks.forEach(fb => {
+  filtered.forEach(fb => {
     const card = document.createElement('div');
     card.className = 'col-md-6';
     card.innerHTML = `
-      <div class="card h-100 shadow-sm position-relative">
-        ${isAdmin ? `
-        <button onclick="deleteFeedback(${fb.id})" 
-                class="btn btn-outline-danger btn-sm position-absolute bottom-0 end-0 m-3"
-                style="z-index: 10;">
-          <i class="bi bi-trash"></i> Delete
-        </button>` : ''}
-
-        <div class="card-body ${isAdmin ? 'pb-5' : ''}">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="card-title mb-0">${fb.subject}</h6>
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <h6 class="card-title">${fb.subject}</h6>
             <span class="badge bg-${fb.anonymous ? 'secondary' : 'primary'}">
-              ${fb.anonymous ? 'Anonymous' : 'Signed'}
+              ${fb.anonymous ? 'Anonymous' : fb.name || 'Signed'}
             </span>
           </div>
           
-          <p class="text-warning mb-1 fs-5">${'★'.repeat(fb.rating)}</p>
-          <p class="text-muted small mb-2">${fb.category} • ${fb.date}</p>
+          <p class="text-warning mb-1">${'★'.repeat(fb.rating)}</p>
+          <p class="text-muted small">${fb.category} • ${fb.date}</p>
           <p class="card-text">${fb.message}</p>
         </div>
       </div>
@@ -933,7 +1063,12 @@ function displayFeedbacks(searchTerm = '') {
   });
 }
 
-// Star Rating Setup
+function filterFeedbacks() {
+  const keyword = document.getElementById('feedbackSearch').value.toLowerCase().trim();
+  displayFeedbacks(keyword);
+}
+
+// Star Rating
 function setupStarRating() {
   const stars = document.querySelectorAll('#starRating span');
   const ratingInput = document.getElementById('fbRating');
@@ -947,70 +1082,13 @@ function setupStarRating() {
   });
 }
 
-// Submit Handler
-function handleFeedbackSubmit(e) {
-  e.preventDefault();
-  // ... (same as before - no change needed) ...
-  const category = document.getElementById('fbCategory').value;
-  const rating = parseInt(document.getElementById('fbRating').value);
-  const subject = document.getElementById('fbSubject').value.trim();
-  const message = document.getElementById('fbMessage').value.trim();
-  const anonymous = document.getElementById('fbAnonymous').checked;
-
-  if (!category || rating === 0 || !subject || !message) {
-    alert("Please fill all required fields and give a rating.");
-    return;
-  }
-
-  const newFeedback = {
-    id: Date.now(),
-    category,
-    rating,
-    subject,
-    message,
-    anonymous,
-    date: new Date().toLocaleDateString('en-MY')
-  };
-
-  userFeedbacks.unshift(newFeedback);
-  saveFeedbacks();
-
-  const form = document.getElementById('feedbackForm');
-  const successDiv = document.createElement('div');
-  successDiv.className = 'alert alert-success mt-3';
-  successDiv.textContent = "Thank you! Your feedback has been submitted.";
-  form.appendChild(successDiv);
-
-  setTimeout(() => { 
-    form.reset(); 
-    document.getElementById('fbRating').value = '0';
-    document.querySelectorAll('#starRating span').forEach(s => s.classList.remove('active'));
-    successDiv.remove();
-    displayFeedbacks(); 
-  }, 1800);
-}
-
 function setupFeedbackForm() {
-  if (feedbackFormInitialized) return;
   const form = document.getElementById('feedbackForm');
-  if (form) {
-    form.addEventListener('submit', handleFeedbackSubmit);
-    feedbackFormInitialized = true;
-  }
+  if (form) form.addEventListener('submit', handleFeedbackSubmit);
 }
 
 function initFeedback() {
-  loadUserFeedbacks();
+  loadFeedbacks();
   setupStarRating();
   setupFeedbackForm();
-
-  // Set title based on role
-  const titleEl = document.getElementById('feedbackListTitle');
-  if (currentUserRole === 'academic') {
-    titleEl.textContent = "Others Feedbacks (Admin View)";
-  } else {
-    titleEl.textContent = "Others Feedbacks";
-  }
-
-  displayFeedbacks();
 }
