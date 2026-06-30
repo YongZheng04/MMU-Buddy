@@ -121,12 +121,6 @@
   
   <h2 class="mb-4">Campus Events & Activities</h2>
 
-  <!-- Tabs -->
-  <ul class="nav nav-tabs mb-4" id="eventTabs">
-    <li class="nav-item"><a class="nav-link active" onclick="switchEventTab(0)">Upcoming</a></li>
-    <li class="nav-item"><a class="nav-link" onclick="switchEventTab(1)">Past</a></li>
-  </ul>
-
   <!-- Search & Filter -->
   <div class="row mb-4">
     <div class="col-md-6">
@@ -154,13 +148,11 @@
           
           <hr>
           <h6>Registered Participants (<span id="modalRsvpCount">0</span>)</h6>
-          <div id="modalRsvpList" class="mt-3">
-            <!-- Filled by JavaScript -->
-          </div>
+          <div id="modalRsvpList" class="mt-3"></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeEventModal()">Close</button>
-          <button id="modalRsvpBtn" class="btn btn-primary" onclick="">RSVP Now</button>
+          <button id="modalRsvpBtn" class="btn btn-primary">RSVP Now</button>
         </div>
       </div>
     </div>
