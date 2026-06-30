@@ -356,11 +356,11 @@ function showDashboard() {
   }, 150);
 }
 
-// ====================== EVENTS SYSTEM (With Detail Modal) ======================
+// ====================== EVENTS SYSTEM ======================
 let allEvents = [];
 let currentSelectedEventId = null;
 
-// Load Events
+// Load Events from Firestore
 async function loadEvents() {
   try {
     const snapshot = await db.collection('events')
@@ -378,7 +378,7 @@ async function loadEvents() {
   }
 }
 
-// Open Event Detail Modal
+// Show Event Detail Modal
 function showEventDetail(eventId) {
   const event = allEvents.find(e => e.id === eventId);
   if (!event) return;
@@ -394,7 +394,6 @@ function showEventDetail(eventId) {
   const rsvpList = event.rsvpList || [];
   document.getElementById('modalRsvpCount').textContent = rsvpList.length;
 
-  // Show registered list
   const listContainer = document.getElementById('modalRsvpList');
   if (rsvpList.length === 0) {
     listContainer.innerHTML = `<p class="text-muted">No one has registered yet.</p>`;
@@ -403,13 +402,12 @@ function showEventDetail(eventId) {
       `<li class="list-group-item">${name}</li>`).join('')}</ul>`;
   }
 
-  // RSVP Button
   const userName = document.getElementById('userWelcome').innerText.replace('Welcome, ', '').trim();
   const isRegistered = rsvpList.includes(userName);
   const rsvpBtn = document.getElementById('modalRsvpBtn');
 
   if (new Date(event.date) < new Date()) {
-    rsvpBtn.style.display = 'none'; // Past event
+    rsvpBtn.style.display = 'none';
   } else {
     rsvpBtn.style.display = 'block';
     rsvpBtn.textContent = isRegistered ? 'Cancel Registration' : 'RSVP Now';
@@ -424,7 +422,7 @@ function closeEventModal() {
   document.getElementById('eventDetailModal').style.display = 'none';
 }
 
-// Toggle RSVP
+// Toggle RSVP with Inline Message
 async function toggleRSVP(eventId) {
   const userName = document.getElementById('userWelcome').innerText.replace('Welcome, ', '').trim();
   if (!userName || userName === "to MMU Buddy") {
@@ -437,25 +435,43 @@ async function toggleRSVP(eventId) {
     const eventDoc = await eventRef.get();
     let rsvpList = eventDoc.data().rsvpList || [];
 
-    if (rsvpList.includes(userName)) {
+    const wasRegistered = rsvpList.includes(userName);
+
+    if (wasRegistered) {
       rsvpList = rsvpList.filter(name => name !== userName);
+      showInlineMessage("Registration cancelled.", "danger");
     } else {
       rsvpList.push(userName);
+      showInlineMessage("Registered successfully!", "success");
     }
 
-    await eventRef.update({ rsvpList, rsvpCount: rsvpList.length });
+    await eventRef.update({ 
+      rsvpList, 
+      rsvpCount: rsvpList.length 
+    });
 
-    alert("Success!");
     closeEventModal();
-    await loadEvents();   // Refresh main list
+    await loadEvents();   // Refresh the list
 
   } catch (error) {
     console.error(error);
-    alert("Failed to update RSVP.");
+    showInlineMessage("Failed to update registration.", "danger");
   }
 }
 
-// Display Events (Clickable Cards)
+// Show Inline Message (like feedback)
+function showInlineMessage(text, type) {
+  const msg = document.createElement('div');
+  msg.className = `alert alert-${type} mt-3 success-message`;
+  msg.textContent = text;
+  
+  const eventsContainer = document.getElementById('eventsList');
+  eventsContainer.parentElement.insertBefore(msg, eventsContainer);
+
+  setTimeout(() => msg.remove(), 3000);
+}
+
+// Display Events
 function displayEvents(events) {
   const container = document.getElementById('eventsList');
   container.innerHTML = '';
@@ -501,9 +517,9 @@ function filterEvents() {
 
   if (searchTerm) {
     filtered = filtered.filter(e => 
-      e.title?.toLowerCase().includes(searchTerm) || 
-      e.description?.toLowerCase().includes(searchTerm) ||
-      e.venue?.toLowerCase().includes(searchTerm)
+      (e.title && e.title.toLowerCase().includes(searchTerm)) || 
+      (e.description && e.description.toLowerCase().includes(searchTerm)) ||
+      (e.venue && e.venue.toLowerCase().includes(searchTerm))
     );
   }
 
@@ -512,12 +528,6 @@ function filterEvents() {
   }
 
   displayEvents(filtered);
-}
-
-function switchEventTab(tab) {
-  document.querySelectorAll('#eventTabs .nav-link').forEach(link => link.classList.remove('active'));
-  document.querySelectorAll('#eventTabs .nav-link')[tab].classList.add('active');
-  filterEvents();
 }
 
 // ====================== CAMPUS MAPS ======================
