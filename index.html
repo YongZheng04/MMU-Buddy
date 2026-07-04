@@ -134,6 +134,13 @@
   <!-- Events List -->
   <div id="eventsList" class="row g-4"></div>
 
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center mt-4" id="pagination" style="display: none;">
+    <button class="btn btn-outline-primary mx-2" onclick="prevPage()">Previous</button>
+    <span class="align-self-center mx-3" id="pageInfo">Page 1 of 1</span>
+    <button class="btn btn-outline-primary mx-2" onclick="nextPage()">Next</button>
+  </div>
+
   <!-- Event Detail Modal -->
   <div id="eventDetailModal" class="modal" style="display: none;">
     <div class="modal-dialog modal-lg">
