@@ -359,12 +359,14 @@ function showDashboard() {
 // ====================== EVENTS SYSTEM ======================
 let allEvents = [];
 let currentSelectedEventId = null;
+let currentPage = 1;
+const eventsPerPage = 6;
 
-// Load Events from Firestore
+// Load Events (Newest first)
 async function loadEvents() {
   try {
     const snapshot = await db.collection('events')
-      .orderBy('date', 'asc')
+      .orderBy('date', 'desc')        // Newest events first
       .get();
 
     allEvents = [];
@@ -372,9 +374,97 @@ async function loadEvents() {
       allEvents.push({ id: doc.id, ...doc.data() });
     });
 
+    currentPage = 1;
     filterEvents();
   } catch (error) {
     console.error("Error loading events:", error);
+  }
+}
+
+// Filter Events + Pagination
+function filterEvents() {
+  const searchTerm = document.getElementById('eventSearch').value.toLowerCase().trim();
+  const selectedDate = document.getElementById('eventDateFilter').value;
+
+  let filtered = allEvents;
+
+  if (searchTerm) {
+    filtered = filtered.filter(e => 
+      (e.title && e.title.toLowerCase().includes(searchTerm)) || 
+      (e.description && e.description.toLowerCase().includes(searchTerm)) ||
+      (e.venue && e.venue.toLowerCase().includes(searchTerm))
+    );
+  }
+
+  if (selectedDate) {
+    filtered = filtered.filter(e => e.date === selectedDate);
+  }
+
+  currentPage = 1;
+  displayEventsWithPagination(filtered);
+}
+
+// Display Events with Pagination
+function displayEventsWithPagination(events) {
+  const container = document.getElementById('eventsList');
+  container.innerHTML = '';
+
+  const totalPages = Math.ceil(events.length / eventsPerPage);
+  const start = (currentPage - 1) * eventsPerPage;
+  const end = start + eventsPerPage;
+  const paginatedEvents = events.slice(start, end);
+
+  if (paginatedEvents.length === 0) {
+    container.innerHTML = `<p class="text-center text-muted py-5">No events found.</p>`;
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  paginatedEvents.forEach(event => {
+    const isPast = new Date(event.date) < new Date();
+    const rsvpCount = event.rsvpCount || (event.rsvpList ? event.rsvpList.length : 0);
+
+    const card = document.createElement('div');
+    card.className = 'col-md-6 col-lg-4';
+    card.innerHTML = `
+      <div class="card h-100 shadow-sm" style="cursor: pointer;" onclick="showEventDetail('${event.id}')">
+        <div class="card-body">
+          <h5 class="card-title">${event.title}</h5>
+          <p class="text-muted small">
+            📅 ${event.date}<br>
+            🕒 ${event.time}<br>
+            📍 ${event.venue}
+          </p>
+          <p class="card-text">${event.description ? event.description.substring(0, 100) + '...' : ''}</p>
+          
+          <div class="mt-3">
+            <span class="badge ${isPast ? 'bg-secondary' : 'bg-success'}">${isPast ? 'Past' : 'Upcoming'}</span>
+            <small class="text-muted ms-2">${rsvpCount} registered</small>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Update Pagination UI
+  document.getElementById('pagination').style.display = 'flex';
+  document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages || 1}`;
+}
+
+// Pagination Functions
+function nextPage() {
+  const totalPages = Math.ceil(allEvents.length / eventsPerPage); // Use filtered length in real version
+  if (currentPage < totalPages) {
+    currentPage++;
+    filterEvents();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    filterEvents();
   }
 }
 
@@ -469,65 +559,6 @@ function showInlineMessage(text, type) {
   eventsContainer.parentElement.insertBefore(msg, eventsContainer);
 
   setTimeout(() => msg.remove(), 3000);
-}
-
-// Display Events
-function displayEvents(events) {
-  const container = document.getElementById('eventsList');
-  container.innerHTML = '';
-
-  if (events.length === 0) {
-    container.innerHTML = `<p class="text-center text-muted py-5">No events found.</p>`;
-    return;
-  }
-
-  events.forEach(event => {
-    const isPast = new Date(event.date) < new Date();
-    const rsvpCount = event.rsvpCount || (event.rsvpList ? event.rsvpList.length : 0);
-
-    const card = document.createElement('div');
-    card.className = 'col-md-6 col-lg-4';
-    card.innerHTML = `
-      <div class="card h-100 shadow-sm" style="cursor: pointer;" onclick="showEventDetail('${event.id}')">
-        <div class="card-body">
-          <h5 class="card-title">${event.title}</h5>
-          <p class="text-muted small">
-            📅 ${event.date}<br>
-            🕒 ${event.time}<br>
-            📍 ${event.venue}
-          </p>
-          <p class="card-text">${event.description ? event.description.substring(0, 100) + '...' : ''}</p>
-          
-          <div class="mt-3">
-            <span class="badge ${isPast ? 'bg-secondary' : 'bg-success'}">${isPast ? 'Past' : 'Upcoming'}</span>
-            <small class="text-muted ms-2">${rsvpCount} registered</small>
-          </div>
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function filterEvents() {
-  const searchTerm = document.getElementById('eventSearch').value.toLowerCase().trim();
-  const selectedDate = document.getElementById('eventDateFilter').value;
-
-  let filtered = allEvents;
-
-  if (searchTerm) {
-    filtered = filtered.filter(e => 
-      (e.title && e.title.toLowerCase().includes(searchTerm)) || 
-      (e.description && e.description.toLowerCase().includes(searchTerm)) ||
-      (e.venue && e.venue.toLowerCase().includes(searchTerm))
-    );
-  }
-
-  if (selectedDate) {
-    filtered = filtered.filter(e => e.date === selectedDate);
-  }
-
-  displayEvents(filtered);
 }
 
 // ====================== CAMPUS MAPS ======================
