@@ -261,7 +261,7 @@ const announcements = [
 function loadAnnouncements() {
   const slidesContainer = document.getElementById('announcementSlides');
   const dotsContainer = document.getElementById('announcementDots');
-
+  
   if (!slidesContainer || !dotsContainer) {
     console.warn("Announcement elements not found yet");
     return;
@@ -293,9 +293,19 @@ function loadAnnouncements() {
   slideInterval = setInterval(nextSlide, 5000);
 }
 
+// Arrow Navigation (Inside Container)
+function prevSlide() {
+  currentSlide = (currentSlide - 1 + announcements.length) % announcements.length;
+  showSlide(currentSlide);
+  if (slideInterval) clearInterval(slideInterval);
+  slideInterval = setInterval(nextSlide, 5000);
+}
+
 function nextSlide() {
   currentSlide = (currentSlide + 1) % announcements.length;
   showSlide(currentSlide);
+  if (slideInterval) clearInterval(slideInterval);
+  slideInterval = setInterval(nextSlide, 5000);
 }
 
 function goToSlide(index) {
@@ -315,6 +325,7 @@ function showSlide(index) {
   if (slides[index]) slides[index].classList.add('active');
   if (dots[index]) dots[index].classList.add('active');
 }
+
 
 // ====================== PAGE NAVIGATION ======================
 function showPage(pageId) {
@@ -820,9 +831,12 @@ function showTransport(campus) {
   });
 }
 
-// ====================== LOST & FOUND (Basic Version) ======================
+// ====================== LOST & FOUND ======================
 let lostItemsData = [];
+let currentLostPage = 1;
+const itemsPerPage = 6;
 
+// Keep all your original functions unchanged
 function openPostModal() {
   document.getElementById('lostPostModal').style.display = 'block';
   setType('lost');
@@ -837,11 +851,9 @@ function setType(type) {
   document.getElementById('type-found').classList.toggle('active', type === 'found');
 }
 
-// Post New Item
+// Post New Item (your original code, unchanged)
 async function postLostItem() {
-  // Clear previous errors
   clearLostErrors();
-
   const type = document.getElementById('type-lost').classList.contains('active') ? 'lost' : 'found';
   const date = document.getElementById('lfDate').value;
   const time = document.getElementById('lfTime').value;
@@ -850,27 +862,11 @@ async function postLostItem() {
   const desc = document.getElementById('lfDesc').value.trim();
 
   let hasError = false;
-
-  if (!date) {
-    document.getElementById('lfDateError').textContent = "Date is required";
-    hasError = true;
-  }
-  if (!time) {
-    document.getElementById('lfTimeError').textContent = "Time is required";
-    hasError = true;
-  }
-  if (!venue) {
-    document.getElementById('lfVenueError').textContent = "Venue is required";
-    hasError = true;
-  }
-  if (!itemName) {
-    document.getElementById('lfItemError').textContent = "Item name is required";
-    hasError = true;
-  }
-  if (!desc) {
-    document.getElementById('lfDescError').textContent = "Description is required";
-    hasError = true;
-  }
+  if (!date) { document.getElementById('lfDateError').textContent = "Date is required"; hasError = true; }
+  if (!time) { document.getElementById('lfTimeError').textContent = "Time is required"; hasError = true; }
+  if (!venue) { document.getElementById('lfVenueError').textContent = "Venue is required"; hasError = true; }
+  if (!itemName) { document.getElementById('lfItemError').textContent = "Item name is required"; hasError = true; }
+  if (!desc) { document.getElementById('lfDescError').textContent = "Description is required"; hasError = true; }
 
   if (hasError) return;
 
@@ -886,33 +882,24 @@ async function postLostItem() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Success - No alert, just refresh
     closePostModal();
     await loadLostItems();
-
-    // Optional: Show green success message at top of Lost & Found page
     showSuccessMessage();
-
   } catch (error) {
     console.error(error);
-    alert("Failed to post item. Please try again.");   // Only keep error alert
+    alert("Failed to post item. Please try again.");
   }
 }
 
-// Show temporary success message
 function showSuccessMessage() {
   const successDiv = document.createElement('div');
   successDiv.className = 'alert alert-success text-center mb-3';
   successDiv.textContent = "✅ Item posted successfully!";
   const lostPage = document.getElementById('lostfound');
   lostPage.insertBefore(successDiv, lostPage.children[1]);
-
-  setTimeout(() => {
-    successDiv.remove();
-  }, 2500);
+  setTimeout(() => successDiv.remove(), 2500);
 }
 
-// Clear Error Messages
 function clearLostErrors() {
   document.getElementById('lfDateError').textContent = '';
   document.getElementById('lfTimeError').textContent = '';
@@ -933,23 +920,30 @@ async function loadLostItems() {
       lostItemsData.push({ id: doc.id, ...doc.data() });
     });
 
-    displayLostItems(lostItemsData);
+    currentLostPage = 1;
+    filterLostItems();
   } catch (error) {
     console.error(error);
   }
 }
 
-// Display Items
+// Display with Pagination
 function displayLostItems(items) {
   const container = document.getElementById('lostItems');
   container.innerHTML = '';
 
-  if (items.length === 0) {
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const start = (currentLostPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginatedItems = items.slice(start, end);
+
+  if (paginatedItems.length === 0) {
     container.innerHTML = `<p class="text-center text-muted py-5">No items posted yet.</p>`;
+    document.getElementById('lostPagination').style.display = 'none';
     return;
   }
 
-  items.forEach(item => {
+  paginatedItems.forEach(item => {
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4';
     col.innerHTML = `
@@ -966,8 +960,13 @@ function displayLostItems(items) {
     `;
     container.appendChild(col);
   });
+
+  // Show Pagination
+  document.getElementById('lostPagination').style.display = 'flex';
+  document.getElementById('lostPageInfo').textContent = `Page ${currentLostPage} of ${totalPages || 1}`;
 }
 
+// Filter (Updated to use pagination)
 function filterLostItems() {
   const keyword = document.getElementById('lostSearch').value.toLowerCase().trim();
   const status = document.getElementById('statusFilter').value;
@@ -986,11 +985,30 @@ function filterLostItems() {
     filtered = filtered.filter(item => item.type === status);
   }
 
+  currentLostPage = 1;
   displayLostItems(filtered);
 }
 
-// ====================== FEEDBACK SYSTEM (Firestore + Show Name/ID) ======================
+// Pagination Functions
+function nextLostPage() {
+  const totalPages = Math.ceil(lostItemsData.length / itemsPerPage);
+  if (currentLostPage < totalPages) {
+    currentLostPage++;
+    filterLostItems();
+  }
+}
+
+function prevLostPage() {
+  if (currentLostPage > 1) {
+    currentLostPage--;
+    filterLostItems();
+  }
+}
+
+// ====================== FEEDBACK SYSTEM ======================
 let allFeedbacks = [];
+let currentFeedbackPage = 1;
+const feedbackPerPage = 6;
 
 // Load Feedbacks
 async function loadFeedbacks() {
@@ -1004,13 +1022,14 @@ async function loadFeedbacks() {
       allFeedbacks.push({ id: doc.id, ...doc.data() });
     });
 
+    currentFeedbackPage = 1;
     displayFeedbacks();
   } catch (error) {
     console.error("Error loading feedbacks:", error);
   }
 }
 
-// Submit Feedback
+// Submit Feedback (your original code, unchanged)
 function handleFeedbackSubmit(e) {
   e.preventDefault();
 
@@ -1061,7 +1080,7 @@ function handleFeedbackSubmit(e) {
   }
 }
 
-// Display Feedbacks
+// Display Feedbacks with Pagination
 function displayFeedbacks(searchTerm = '') {
   const container = document.getElementById('feedbackList');
   container.innerHTML = '';
@@ -1076,12 +1095,18 @@ function displayFeedbacks(searchTerm = '') {
     );
   }
 
-  if (filtered.length === 0) {
+  const totalPages = Math.ceil(filtered.length / feedbackPerPage);
+  const start = (currentFeedbackPage - 1) * feedbackPerPage;
+  const end = start + feedbackPerPage;
+  const paginatedFeedbacks = filtered.slice(start, end);
+
+  if (paginatedFeedbacks.length === 0) {
     container.innerHTML = `<div class="col-12"><p class="text-muted text-center py-5">No feedbacks yet.</p></div>`;
+    document.getElementById('feedbackPagination').style.display = 'none';
     return;
   }
 
-  filtered.forEach(fb => {
+  paginatedFeedbacks.forEach(fb => {
     const card = document.createElement('div');
     card.className = 'col-md-6';
     card.innerHTML = `
@@ -1102,14 +1127,35 @@ function displayFeedbacks(searchTerm = '') {
     `;
     container.appendChild(card);
   });
+
+  // Show Pagination
+  document.getElementById('feedbackPagination').style.display = 'flex';
+  document.getElementById('feedbackPageInfo').textContent = `Page ${currentFeedbackPage} of ${totalPages || 1}`;
 }
 
 function filterFeedbacks() {
   const keyword = document.getElementById('feedbackSearch').value.toLowerCase().trim();
+  currentFeedbackPage = 1;
   displayFeedbacks(keyword);
 }
 
-// Star Rating
+// Pagination Functions
+function nextFeedbackPage() {
+  const totalPages = Math.ceil(allFeedbacks.length / feedbackPerPage);
+  if (currentFeedbackPage < totalPages) {
+    currentFeedbackPage++;
+    displayFeedbacks(document.getElementById('feedbackSearch').value.toLowerCase().trim());
+  }
+}
+
+function prevFeedbackPage() {
+  if (currentFeedbackPage > 1) {
+    currentFeedbackPage--;
+    displayFeedbacks(document.getElementById('feedbackSearch').value.toLowerCase().trim());
+  }
+}
+
+// Star Rating and Form Setup (your original code, unchanged)
 function setupStarRating() {
   const stars = document.querySelectorAll('#starRating span');
   const ratingInput = document.getElementById('fbRating');
